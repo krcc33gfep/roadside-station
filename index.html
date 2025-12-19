@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>道の駅ビューワー</title>
+<title>道の駅ビューワー（訪問履歴付き）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -27,7 +27,6 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
-  /* 🔍 検索ボックス */
   .search-wrapper {
     position: relative;
     width: 100%;
@@ -42,14 +41,6 @@
     border-radius: 8px;
     padding: 8px 30px 8px 10px;
     font-size: 16px;
-    box-sizing: border-box;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  }
-
-  input[type="text"]:focus {
-    outline: none;
-    border-color: #2e7d32;
-    box-shadow: 0 0 6px #66bb6a88;
   }
 
   .clear-btn {
@@ -61,17 +52,12 @@
     border: none;
     color: #388e3c;
     font-size: 20px;
-    line-height: 1;
     cursor: pointer;
     display: none;
-    padding: 0;
   }
-  .clear-btn:hover { color: #1b5e20; }
 
   .container {
     padding: 10px;
-    width: 100%;
-    box-sizing: border-box;
   }
 
   .row {
@@ -80,25 +66,84 @@
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 8px;
-    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    cursor: pointer;
   }
 
   .row:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #e8f5e9;
   }
 
   .name {
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: 600;
     color: #2e7d32;
   }
 
   .address {
-    font-size: 0.95em;
-    color: #444;
+    font-size: 0.9em;
+    color: #333;
+  }
+
+  .info-line {
+    font-size: 0.85em;
+    color: #555;
     margin-top: 4px;
   }
+
+  /* 詳細モーダル */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: #fff;
+    color: #111;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90%;
+    overflow-y: auto;
+  }
+
+  .modal h2 { margin-top: 0; color: #2e7d32; }
+
+  .close-btn {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333;
+  }
+
+  .visit-entry {
+    border-bottom: 1px solid #ddd;
+    padding: 4px 0;
+  }
+
+  label {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.9em;
+  }
+
+  button.add-btn {
+    margin-top: 8px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  button.add-btn:hover { background: #388e3c; }
 
   #lastUpdate {
     text-align: center;
@@ -120,72 +165,128 @@
 
 <div class="container" id="output"></div>
 
+<!-- 詳細モーダル -->
+<div class="modal" id="detailModal">
+  <div class="modal-content">
+    <button class="close-btn" id="closeModal">&times;</button>
+    <h2 id="modalName"></h2>
+    <p id="modalAddress"></p>
+
+    <label>
+      <input type="checkbox" id="ticketCheck"> 切符購入済み
+    </label>
+
+    <h3>訪問履歴</h3>
+    <div id="visitList"></div>
+
+    <label>訪問日：<input type="date" id="visitDate"></label>
+    <label>メモ：<input type="text" id="visitNote" placeholder="任意メモ"></label>
+    <button class="add-btn" id="addVisitBtn">訪問を追加</button>
+  </div>
+</div>
+
 <script>
-let rows = [];
-
 const csvUrl = "https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
+let rows = [];
+let currentId = null;
 
-/* 🧾 CSV 読み込み */
+/* 🧾 CSV読込 */
 fetch(csvUrl)
   .then(r => r.text())
   .then(csvText => {
     Papa.parse(csvText, {
       header: true,
       skipEmptyLines: true,
-      complete: function(results) {
-        rows = results.data;
+      complete: res => {
+        rows = res.data;
         render(rows);
       }
     });
-  })
-  .catch(err => console.error("CSVの読み込みに失敗:", err));
+  });
 
-/* 🔍 検索処理 */
+/* 🔍 検索 */
 const search = document.getElementById("search");
 const clearBtn = document.getElementById("clearBtn");
-
 search.addEventListener("input", () => {
-  const keywords = search.value.toLowerCase().trim().split(/\s+/);
-  clearBtn.style.display = search.value ? "block" : "none";
-
-  const filtered = rows.filter(r => {
-    const text = `${r['名称'] || ""},${r['住所'] || ""}`.toLowerCase();
-    return keywords.every(kw => text.includes(kw));
-  });
+  const kw = search.value.toLowerCase().trim();
+  clearBtn.style.display = kw ? "block" : "none";
+  const filtered = rows.filter(r => 
+    (r['名称']||"").toLowerCase().includes(kw) ||
+    (r['住所']||"").toLowerCase().includes(kw)
+  );
   render(filtered);
 });
-
-/* ❌ クリアボタン */
-clearBtn.addEventListener("click", () => {
-  search.value = "";
-  clearBtn.style.display = "none";
-  render(rows);
-});
+clearBtn.addEventListener("click", ()=>{ search.value=""; clearBtn.style.display="none"; render(rows); });
 
 /* 🧱 レンダリング */
 function render(data){
   const out = document.getElementById("output");
   out.innerHTML = "";
-  data.forEach(r => {
-    const el = document.createElement("div");
-    el.className = "row";
-    el.innerHTML = `
-      <div class="name">${r['名称'] || "（名称不明）"}</div>
-      <div class="address">${r['住所'] || ""}</div>
+  data.forEach(r=>{
+    const id = r['ID'];
+    const saved = JSON.parse(localStorage.getItem(`michinoeki_${id}`) || "{}");
+    const lastVisit = saved.visits?.[0]?.date || "";
+    const ticket = saved.ticket ? "🎫" : "";
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `
+      <div class="name">${r['名称']||"（名称不明）"} ${ticket}</div>
+      <div class="address">${r['住所']||""}</div>
+      <div class="info-line">${lastVisit ? `最終訪問日：${lastVisit}` : "未訪問"}</div>
     `;
-    out.appendChild(el);
+    div.addEventListener("click",()=>openDetail(r));
+    out.appendChild(div);
   });
 }
 
-/* ⏰ 更新日時の取得（オプション） */
-const infoUrl = "https://script.google.com/macros/s/AKfycbztyxbPuL2IJYrC1b51oLnriV1Ms8n8uTdHKuyiJUNTlER3hULUxyKnNPSXjM9rxdrwaA/exec";
+/* 🔍 詳細モーダル */
+const modal = document.getElementById("detailModal");
+const closeModal = document.getElementById("closeModal");
+closeModal.addEventListener("click", ()=> modal.style.display="none");
 
-fetch(infoUrl)
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("lastUpdate").textContent = `最終更新日時：${data.updated}`;
-  })
-  .catch(err => console.error("更新時刻の取得失敗:", err));
+function openDetail(r){
+  currentId = r['ID'];
+  modal.style.display = "flex";
+  document.getElementById("modalName").textContent = r['名称'];
+  document.getElementById("modalAddress").textContent = r['住所'];
+
+  const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
+  document.getElementById("ticketCheck").checked = saved.ticket;
+  renderVisits(saved.visits);
+}
+
+/* 🎫 切符チェック */
+document.getElementById("ticketCheck").addEventListener("change", e=>{
+  if(!currentId) return;
+  const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
+  saved.ticket = e.target.checked;
+  localStorage.setItem(`michinoeki_${currentId}`, JSON.stringify(saved));
+  render(rows);
+});
+
+/* 📅 訪問履歴追加 */
+document.getElementById("addVisitBtn").addEventListener("click", ()=>{
+  const date = document.getElementById("visitDate").value;
+  if(!date){ alert("訪問日を入力してください"); return; }
+  const note = document.getElementById("visitNote").value;
+  const key = `michinoeki_${currentId}`;
+  let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
+  saved.visits.push({ date, note });
+  saved.visits.sort((a,b)=> new Date(b.date)-new Date(a.date));
+  localStorage.setItem(key, JSON.stringify(saved));
+  renderVisits(saved.visits);
+  render(rows);
+  document.getElementById("visitDate").value="";
+  document.getElementById("visitNote").value="";
+});
+
+/* 🗒️ 履歴表示 */
+function renderVisits(visits){
+  const list = document.getElementById("visitList");
+  list.innerHTML = visits.length
+    ? visits.map(v=>`<div class="visit-entry">${v.date} ${v.note||""}</div>`).join("")
+    : "<div>訪問履歴なし</div>";
+}
 </script>
 
 </body>
