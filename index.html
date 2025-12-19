@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>道の駅ビューワー（訪問履歴付き）</title>
+<title>道の駅ビューワー（改良版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -69,9 +69,7 @@
     cursor: pointer;
   }
 
-  .row:hover {
-    background: #e8f5e9;
-  }
+  .row:hover { background: #e8f5e9; }
 
   .name {
     font-size: 1.1em;
@@ -85,12 +83,15 @@
   }
 
   .info-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 0.85em;
     color: #555;
     margin-top: 4px;
   }
 
-  /* 詳細モーダル */
+  /* モーダル */
   .modal {
     display: none;
     position: fixed;
@@ -105,7 +106,7 @@
     color: #111;
     padding: 20px;
     border-radius: 10px;
-    width: 90%;
+    width: calc(100% - 40px);
     max-width: 500px;
     max-height: 90%;
     overflow-y: auto;
@@ -125,6 +126,17 @@
   .visit-entry {
     border-bottom: 1px solid #ddd;
     padding: 4px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    font-size: 16px;
+    cursor: pointer;
   }
 
   label {
@@ -173,7 +185,7 @@
     <p id="modalAddress"></p>
 
     <label>
-      <input type="checkbox" id="ticketCheck"> 切符購入済み
+      <input type="checkbox" id="ticketCheck"> 切符購入済
     </label>
 
     <h3>訪問履歴</h3>
@@ -189,6 +201,7 @@
 const csvUrl = "https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
 let rows = [];
 let currentId = null;
+let currentSearch = "";
 
 /* 🧾 CSV読込 */
 fetch(csvUrl)
@@ -199,7 +212,7 @@ fetch(csvUrl)
       skipEmptyLines: true,
       complete: res => {
         rows = res.data;
-        render(rows);
+        renderFiltered();
       }
     });
   });
@@ -208,15 +221,27 @@ fetch(csvUrl)
 const search = document.getElementById("search");
 const clearBtn = document.getElementById("clearBtn");
 search.addEventListener("input", () => {
-  const kw = search.value.toLowerCase().trim();
-  clearBtn.style.display = kw ? "block" : "none";
-  const filtered = rows.filter(r => 
-    (r['名称']||"").toLowerCase().includes(kw) ||
-    (r['住所']||"").toLowerCase().includes(kw)
-  );
-  render(filtered);
+  currentSearch = search.value.toLowerCase().trim();
+  clearBtn.style.display = currentSearch ? "block" : "none";
+  renderFiltered();
 });
-clearBtn.addEventListener("click", ()=>{ search.value=""; clearBtn.style.display="none"; render(rows); });
+clearBtn.addEventListener("click", ()=>{
+  search.value = "";
+  currentSearch = "";
+  clearBtn.style.display = "none";
+  renderFiltered();
+});
+
+/* 🎨 リスト描画（検索フィルタ含む） */
+function renderFiltered(){
+  const filtered = currentSearch
+    ? rows.filter(r => 
+        (r['名称']||"").toLowerCase().includes(currentSearch) ||
+        (r['住所']||"").toLowerCase().includes(currentSearch)
+      )
+    : rows;
+  render(filtered);
+}
 
 /* 🧱 レンダリング */
 function render(data){
@@ -226,13 +251,16 @@ function render(data){
     const id = r['ID'];
     const saved = JSON.parse(localStorage.getItem(`michinoeki_${id}`) || "{}");
     const lastVisit = saved.visits?.[0]?.date || "";
-    const ticket = saved.ticket ? "🎫" : "";
+    const ticketLabel = saved.ticket ? "切符購入済" : "";
     const div = document.createElement("div");
     div.className = "row";
     div.innerHTML = `
-      <div class="name">${r['名称']||"（名称不明）"} ${ticket}</div>
+      <div class="name">${r['名称']||"（名称不明）"}</div>
       <div class="address">${r['住所']||""}</div>
-      <div class="info-line">${lastVisit ? `最終訪問日：${lastVisit}` : "未訪問"}</div>
+      <div class="info-line">
+        <span>${lastVisit ? `最終訪問日：${lastVisit}` : "未訪問"}</span>
+        <span>${ticketLabel}</span>
+      </div>
     `;
     div.addEventListener("click",()=>openDetail(r));
     out.appendChild(div);
@@ -261,7 +289,7 @@ document.getElementById("ticketCheck").addEventListener("change", e=>{
   const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
   saved.ticket = e.target.checked;
   localStorage.setItem(`michinoeki_${currentId}`, JSON.stringify(saved));
-  render(rows);
+  renderFiltered();
 });
 
 /* 📅 訪問履歴追加 */
@@ -275,17 +303,34 @@ document.getElementById("addVisitBtn").addEventListener("click", ()=>{
   saved.visits.sort((a,b)=> new Date(b.date)-new Date(a.date));
   localStorage.setItem(key, JSON.stringify(saved));
   renderVisits(saved.visits);
-  render(rows);
+  renderFiltered();
   document.getElementById("visitDate").value="";
   document.getElementById("visitNote").value="";
 });
 
+/* 🗑 履歴削除 */
+function deleteVisit(index){
+  const key = `michinoeki_${currentId}`;
+  let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
+  saved.visits.splice(index,1);
+  localStorage.setItem(key, JSON.stringify(saved));
+  renderVisits(saved.visits);
+  renderFiltered();
+}
+
 /* 🗒️ 履歴表示 */
 function renderVisits(visits){
   const list = document.getElementById("visitList");
-  list.innerHTML = visits.length
-    ? visits.map(v=>`<div class="visit-entry">${v.date} ${v.note||""}</div>`).join("")
-    : "<div>訪問履歴なし</div>";
+  if(!visits.length){
+    list.innerHTML = "<div>訪問履歴なし</div>";
+    return;
+  }
+  list.innerHTML = visits.map((v,i)=>`
+    <div class="visit-entry">
+      <div>${v.date} ${v.note||""}</div>
+      <button class="delete-btn" onclick="deleteVisit(${i})">🗑</button>
+    </div>
+  `).join("");
 }
 </script>
 
