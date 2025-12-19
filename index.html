@@ -2,18 +2,19 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>道の駅ビューワー（シンプル版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>道の駅ビューワー（iPhone最適化版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-  body {
+  html, body {
     background: #f0fff4;
     color: #033;
     font-family: "M PLUS 1 Code", monospace;
     margin: 0;
+    -webkit-text-size-adjust: 100%; /* ✅ iPhoneでの文字自動拡大防止 */
   }
 
   header {
@@ -83,6 +84,8 @@
     font-size: 1.1em;
     font-weight: 600;
     color: #2e7d32;
+    text-align: center; /* ✅ 駅名を中央寄せ */
+    flex: 1;
   }
 
   .last-visit {
@@ -130,12 +133,16 @@
     padding: 20px;
     border-radius: 10px;
     width: calc(100% - 40px);
-    max-width: 500px;
+    max-width: 480px;
     max-height: 90%;
     overflow-y: auto;
   }
 
-  .modal h2 { margin-top: 0; color: #2e7d32; }
+  .modal h2 {
+    margin: 0 0 8px 0;
+    color: #2e7d32;
+    text-align: center; /* ✅ 駅名を中央寄せ */
+  }
 
   .close-btn {
     float: right;
@@ -168,14 +175,23 @@
     font-size: 0.9em;
   }
 
+  input[type="date"], input[type="text"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
   button.add-btn {
-    margin-top: 8px;
+    margin-top: 10px;
     background: #4caf50;
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 8px 10px;
     cursor: pointer;
+    width: 100%;
   }
 
   button.add-btn:hover { background: #388e3c; }
@@ -197,7 +213,6 @@
   <div class="modal-content">
     <button class="close-btn" id="closeModal">&times;</button>
     <h2 id="modalName"></h2>
-    <p id="modalAddress"></p>
 
     <label>
       <input type="checkbox" id="ticketCheck"> 切符購入済
@@ -293,8 +308,6 @@ function openDetail(r){
   currentId = r['ID'];
   modal.style.display = "flex";
   document.getElementById("modalName").textContent = r['名称'];
-  document.getElementById("modalAddress").textContent = r['住所'];
-
   const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
   document.getElementById("ticketCheck").checked = saved.ticket;
   renderVisits(saved.visits);
