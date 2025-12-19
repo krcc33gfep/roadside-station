@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>道の駅ビューワー（UI改良版）</title>
+<title>道の駅ビューワー（シンプル版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -179,13 +179,6 @@
   }
 
   button.add-btn:hover { background: #388e3c; }
-
-  #lastUpdate {
-    text-align: center;
-    color: #1b5e20;
-    font-size: 0.8em;
-    margin-top: 4px;
-  }
 </style>
 </head>
 <body>
@@ -195,7 +188,6 @@
     <input id="search" type="text" placeholder="検索（名称・住所）...">
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
-  <div id="lastUpdate">更新情報を取得中...</div>
 </header>
 
 <div class="container" id="output"></div>
@@ -280,7 +272,7 @@ function render(data){
     div.innerHTML = `
       <div class="top-line">
         <div class="name">${r['名称']||"（名称不明）"}</div>
-        <div class="last-visit">${lastVisit ? `最終訪問日：${lastVisit}` : ""}</div>
+        <div class="last-visit">${lastVisit}</div>
       </div>
       <div class="bottom-line">
         <div class="address">${r['住所']||""}</div>
