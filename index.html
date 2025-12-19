@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>道の駅ビューワー（改良版）</title>
+<title>道の駅ビューワー（UI改良版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -29,7 +29,7 @@
 
   .search-wrapper {
     position: relative;
-    width: 100%;
+    width: 90%;
     max-width: 600px;
   }
 
@@ -41,6 +41,7 @@
     border-radius: 8px;
     padding: 8px 30px 8px 10px;
     font-size: 16px;
+    box-sizing: border-box;
   }
 
   .clear-btn {
@@ -71,24 +72,46 @@
 
   .row:hover { background: #e8f5e9; }
 
+  .top-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
   .name {
     font-size: 1.1em;
     font-weight: 600;
     color: #2e7d32;
   }
 
-  .address {
-    font-size: 0.9em;
-    color: #333;
+  .last-visit {
+    font-size: 0.85em;
+    color: #555;
+    text-align: right;
+    flex-shrink: 0;
   }
 
-  .info-line {
+  .bottom-line {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85em;
-    color: #555;
+    flex-wrap: wrap;
+    font-size: 0.9em;
+    color: #333;
     margin-top: 4px;
+  }
+
+  .address {
+    flex: 1;
+    min-width: 60%;
+  }
+
+  .ticket {
+    text-align: right;
+    color: #2e7d32;
+    font-size: 0.85em;
+    min-width: 100px;
   }
 
   /* モーダル */
@@ -255,11 +278,13 @@ function render(data){
     const div = document.createElement("div");
     div.className = "row";
     div.innerHTML = `
-      <div class="name">${r['名称']||"（名称不明）"}</div>
-      <div class="address">${r['住所']||""}</div>
-      <div class="info-line">
-        <span>${lastVisit ? `最終訪問日：${lastVisit}` : "未訪問"}</span>
-        <span>${ticketLabel}</span>
+      <div class="top-line">
+        <div class="name">${r['名称']||"（名称不明）"}</div>
+        <div class="last-visit">${lastVisit ? `最終訪問日：${lastVisit}` : ""}</div>
+      </div>
+      <div class="bottom-line">
+        <div class="address">${r['住所']||""}</div>
+        <div class="ticket">${ticketLabel}</div>
       </div>
     `;
     div.addEventListener("click",()=>openDetail(r));
