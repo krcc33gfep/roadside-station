@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（一覧：左寄せ／詳細：中央寄せ）</title>
+<title>道の駅ビューワー（ソート機能付き）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -21,10 +21,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     padding: 12px;
     background: #a5d6a7;
-    color: #033;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
@@ -58,6 +56,36 @@
     display: none;
   }
 
+  /* 🔘 ソートボタン */
+  .sort-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sort-buttons button {
+    background: #81c784;
+    color: #033;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+
+  .sort-buttons button:hover {
+    background: #66bb6a;
+  }
+
+  .sort-buttons button.active {
+    background: #4caf50;
+    color: #fff;
+  }
+
   .container {
     padding: 10px;
   }
@@ -80,7 +108,6 @@
     flex-wrap: wrap;
   }
 
-  /* ✅ 一覧の駅名は左寄せ */
   .name {
     font-size: 1.1em;
     font-weight: 600;
@@ -138,7 +165,6 @@
     overflow-y: auto;
   }
 
-  /* ✅ 詳細モーダルでは駅名を中央寄せ */
   .modal h2 {
     margin: 0 0 8px 0;
     color: #2e7d32;
@@ -205,6 +231,12 @@
     <input id="search" type="text" placeholder="検索（名称・住所）...">
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
+
+  <!-- 🔘 ソートボタン -->
+  <div class="sort-buttons">
+    <button id="filterTicket">🎫 購入済みだけ</button>
+    <button id="sortVisitDate">📅 訪問日順</button>
+  </div>
 </header>
 
 <div class="container" id="output"></div>
@@ -233,6 +265,8 @@ const csvUrl = "https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqk
 let rows = [];
 let currentId = null;
 let currentSearch = "";
+let showOnlyTicket = false;
+let sortByVisitDate = false;
 
 /* 🧾 CSV読込 */
 fetch(csvUrl)
@@ -263,14 +297,43 @@ clearBtn.addEventListener("click", ()=>{
   renderFiltered();
 });
 
-/* 🎨 リスト描画（検索フィルタ含む） */
+/* 🎫 ソート・フィルタボタン */
+document.getElementById("filterTicket").addEventListener("click", ()=>{
+  showOnlyTicket = !showOnlyTicket;
+  document.getElementById("filterTicket").classList.toggle("active", showOnlyTicket);
+  renderFiltered();
+});
+
+document.getElementById("sortVisitDate").addEventListener("click", ()=>{
+  sortByVisitDate = !sortByVisitDate;
+  document.getElementById("sortVisitDate").classList.toggle("active", sortByVisitDate);
+  renderFiltered();
+});
+
+/* 🎨 リスト描画（検索＋ソート＋フィルタ含む） */
 function renderFiltered(){
-  const filtered = currentSearch
-    ? rows.filter(r => 
-        (r['名称']||"").toLowerCase().includes(currentSearch) ||
+  let filtered = rows.filter(r => {
+    const matchSearch = currentSearch
+      ? (r['名称']||"").toLowerCase().includes(currentSearch) ||
         (r['住所']||"").toLowerCase().includes(currentSearch)
-      )
-    : rows;
+      : true;
+
+    const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
+    const matchTicket = showOnlyTicket ? saved.ticket : true;
+
+    return matchSearch && matchTicket;
+  });
+
+  if (sortByVisitDate) {
+    filtered.sort((a, b) => {
+      const aSaved = JSON.parse(localStorage.getItem(`michinoeki_${a['ID']}`) || "{}");
+      const bSaved = JSON.parse(localStorage.getItem(`michinoeki_${b['ID']}`) || "{}");
+      const aDate = new Date(aSaved.visits?.[0]?.date || 0);
+      const bDate = new Date(bSaved.visits?.[0]?.date || 0);
+      return bDate - aDate;
+    });
+  }
+
   render(filtered);
 }
 
