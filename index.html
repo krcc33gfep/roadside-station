@@ -144,6 +144,16 @@
   #ticketCheck { transform: scale(1.5); accent-color: #4caf50; cursor: pointer; }
   label[for="ticketCheck"] { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 1.1em; margin: 10px 0; }
 
+  /* 日付入力欄 */
+  #visitDate {
+    background: #e8f5e9;
+    border: 1px solid #81c784;
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 15px;
+    width: 160px;
+  }
+
   /* 追加・閉じるボタン共通 */
   .modal-buttons {
     display: flex;
@@ -163,19 +173,11 @@
     cursor: pointer;
   }
 
-  #addVisitBtn {
-    background: #4caf50;
-  }
-  #addVisitBtn:hover {
-    background: #388e3c;
-  }
+  #addVisitBtn { background: #4caf50; }
+  #addVisitBtn:hover { background: #388e3c; }
 
-  #closeModal2 {
-    background: #d32f2f;
-  }
-  #closeModal2:hover {
-    background: #b71c1c;
-  }
+  #closeModal2 { background: #d32f2f; }
+  #closeModal2:hover { background: #b71c1c; }
 
   #visitCountLabel { color: #2e7d32; font-weight: 500; margin-left: 4px; }
 </style>
@@ -327,6 +329,11 @@ function openDetail(r){
   currentId=r['ID'];
   modal.style.display="flex";
   document.getElementById("modalName").textContent=r['名称'];
+
+  // 今日の日付を自動設定
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("visitDate").value = today;
+
   const saved=JSON.parse(localStorage.getItem(`michinoeki_${currentId}`)||'{"visits":[],"ticket":false}');
   document.getElementById("ticketCheck").checked=saved.ticket;
   renderVisits(saved.visits);
@@ -351,7 +358,6 @@ document.getElementById("addVisitBtn").addEventListener("click",()=>{
   localStorage.setItem(key,JSON.stringify(saved));
   renderVisits(saved.visits);
   renderFiltered();
-  document.getElementById("visitDate").value="";
 });
 
 function deleteVisit(i){
@@ -370,9 +376,6 @@ function renderVisits(visits){
   list.innerHTML=visits.map((v,i)=>`<div class="visit-entry"><div>${v.date}</div><button class="delete-btn" onclick="deleteVisit(${i})">🗑</button></div>`).join("");
   countLabel.textContent=`：${visits.length}回`;
 }
-
-/* ===== CSVエクスポート・インポート ===== */
-// 以下略（元のコードそのまま）
 </script>
 </body>
 </html>
