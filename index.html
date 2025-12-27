@@ -206,16 +206,24 @@
     font-size: 14px;
   }
 
-  button.add-btn {
-    margin-top: 10px;
-    background: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-    width: 100%;
-  }
+button.add-btn {
+  margin: 12px auto 0;       /* ← 上に少し余白＋中央寄せ */
+  display: block;
+  width: 50%;                /* ← 全体の50%に変更 */
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-family: inherit;
+  text-align: center;
+}
+
+button.add-btn:hover {
+  background: #388e3c;
+}
 
   button.add-btn:hover { background: #388e3c; }
 </style>
@@ -250,8 +258,7 @@
     <div id="visitList"></div>
 
     <label>訪問日：<input type="date" id="visitDate"></label>
-    <label>メモ：<input type="text" id="visitNote" placeholder="任意メモ"></label>
-    <button class="add-btn" id="addVisitBtn">訪問を追加</button>
+    <button class="add-btn" id="addVisitBtn">追加</button>
   </div>
 </div>
 
@@ -389,16 +396,17 @@ document.getElementById("ticketCheck").addEventListener("change", e=>{
 document.getElementById("addVisitBtn").addEventListener("click", ()=>{
   const date = document.getElementById("visitDate").value;
   if(!date){ alert("訪問日を入力してください"); return; }
-  const note = document.getElementById("visitNote").value;
-  const key = `michinoeki_${currentId}`;
-  let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
-  saved.visits.push({ date, note });
-  saved.visits.sort((a,b)=> new Date(b.date)-new Date(a.date));
-  localStorage.setItem(key, JSON.stringify(saved));
-  renderVisits(saved.visits);
-  renderFiltered();
-  document.getElementById("visitDate").value="";
-  document.getElementById("visitNote").value="";
+const note = document.getElementById("visitNote").value;
+const key = `michinoeki_${currentId}`;
+let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
+saved.visits.push({ date, note });
+saved.visits.sort((a,b)=> new Date(b.date)-new Date(a.date));
+localStorage.setItem(key, JSON.stringify(saved));
+renderVisits(saved.visits);
+renderFiltered();
+document.getElementById("visitDate").value="";
+document.getElementById("visitNote").value="";
+
 });
 
 /* 訪問削除 */
