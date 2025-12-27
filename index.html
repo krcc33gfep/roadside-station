@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（訪問回数表示付き）</title>
+<title>道の駅ビューワー（CSVエクスポート・インポート対応）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -263,6 +263,9 @@
   <div class="sort-buttons">
     <button id="filterTicket">購入済み</button>
     <button id="sortVisitDate">訪問日順</button>
+    <button id="exportCSVBtn">CSVエクスポート</button>
+    <button id="importCSVBtn">CSVインポート</button>
+    <input type="file" id="csvFile" accept=".csv" style="display:none;">
   </div>
 </header>
 
@@ -294,7 +297,7 @@ let currentSearch = "";
 let showOnlyTicket = false;
 let sortByVisitDate = false;
 
-/* CSV読込 */
+/* CSV読込（駅データ） */
 fetch(csvUrl)
   .then(r => r.text())
   .then(csvText => {
@@ -470,6 +473,57 @@ function renderVisits(visits){
 
   countLabel.textContent = `：${count}回`;
 }
+
+/* ===== CSVエクスポート ===== */
+document.getElementById("exportCSVBtn").addEventListener("click", () => {
+  const rows = [["ID","訪問回数","最新訪問日","切符購入済"]];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("michinoeki_")) {
+      const saved = JSON.parse(localStorage.getItem(key));
+      const id = key.replace("michinoeki_", "");
+      const visits = saved.visits || [];
+      const last = visits[0]?.date || "";
+      const count = visits.length;
+      const ticket = saved.ticket ? "○" : "";
+      rows.push([id, count, last, ticket]);
+    }
+  }
+  const csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "michinoeki_data.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ===== CSVインポート ===== */
+const csvFile = document.getElementById("csvFile");
+document.getElementById("importCSVBtn").addEventListener("click", ()=> csvFile.click());
+
+csvFile.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    complete: res => {
+      res.data.forEach(row => {
+        const id = row["ID"];
+        if (!id) return;
+        const count = parseInt(row["訪問回数"]) || 0;
+        const last = row["最新訪問日"] || "";
+        const ticket = row["切符購入済"] === "○";
+        const visits = last ? Array.from({length: count}, (_,i)=>({date:last})) : [];
+        localStorage.setItem(`michinoeki_${id}`, JSON.stringify({visits, ticket}));
+      });
+      alert("CSVインポート完了！ページを再読み込みします。");
+      location.reload();
+    }
+  });
+});
 </script>
 
 </body>
