@@ -241,7 +241,6 @@ csvMainBtn.addEventListener("click", (e)=>{
   e.stopPropagation();
   csvMenu.style.display = csvMenu.style.display === "block" ? "none" : "block";
 });
-
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
 /* ===== 一覧描画 ===== */
@@ -340,7 +339,7 @@ function renderVisits(visits){
   countLabel.textContent=`：${visits.length}回`;
 }
 
-/* ===== CSVエクスポート ===== */
+/* ===== CSVエクスポート（日時付きファイル名） ===== */
 document.getElementById("exportCSVBtn").addEventListener("click",()=>{
   const rows=[["ID","訪問回数","切符購入済"]];
   let max=0;const data=[];
@@ -359,9 +358,21 @@ document.getElementById("exportCSVBtn").addEventListener("click",()=>{
   data.forEach(r=>rows.push(r));
   const csv=rows.map(r=>r.join(",")).join("\n");
   const blob=new Blob([csv],{type:"text/csv"});
+
+  // 日時文字列（例：202512271940）
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const MM = String(now.getMonth()+1).padStart(2,"0");
+  const dd = String(now.getDate()).padStart(2,"0");
+  const hh = String(now.getHours()).padStart(2,"0");
+  const mm = String(now.getMinutes()).padStart(2,"0");
+  const timestamp = `${yyyy}${MM}${dd}${hh}${mm}`;
+
+  const filename = `michinoeki_data_${timestamp}.csv`;
+
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="michinoeki_data_full.csv";
+  a.download=filename;
   a.click();
 });
 
