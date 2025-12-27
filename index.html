@@ -393,20 +393,33 @@ document.getElementById("ticketCheck").addEventListener("change", e=>{
 });
 
 /* 訪問追加 */
-document.getElementById("addVisitBtn").addEventListener("click", ()=>{
+document.getElementById("addVisitBtn").addEventListener("click", () => {
   const date = document.getElementById("visitDate").value;
-  if(!date){ alert("訪問日を入力してください"); return; }
-const note = document.getElementById("visitNote").value;
-const key = `michinoeki_${currentId}`;
-let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
-saved.visits.push({ date, note });
-saved.visits.sort((a,b)=> new Date(b.date)-new Date(a.date));
-localStorage.setItem(key, JSON.stringify(saved));
-renderVisits(saved.visits);
-renderFiltered();
-document.getElementById("visitDate").value="";
-document.getElementById("visitNote").value="";
+  if (!date) {
+    alert("訪問日を入力してください");
+    return;
+  }
 
+  const key = `michinoeki_${currentId}`;
+  // 既存データを取得・初期化
+  let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
+  if (!Array.isArray(saved.visits)) saved.visits = [];
+
+  // 新しい訪問を追加
+  saved.visits.push({ date });
+
+  // 日付降順に並べ替え
+  saved.visits.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // 保存
+  localStorage.setItem(key, JSON.stringify(saved));
+
+  // 表示更新
+  renderVisits(saved.visits);
+  renderFiltered();
+
+  // 入力リセット
+  document.getElementById("visitDate").value = "";
 });
 
 /* 訪問削除 */
