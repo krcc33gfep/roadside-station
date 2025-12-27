@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSV横方向確実出力版）</title>
+<title>道の駅ビューワー（CSV全履歴出力対応版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -139,32 +139,43 @@ csvMainBtn.addEventListener("click", (e)=>{
 });
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
-/* ===== CSVエクスポート（訪問日を横方向に確実出力） ===== */
+/* ===== CSVエクスポート（全訪問履歴出力） ===== */
 document.getElementById("exportCSVBtn").addEventListener("click", () => {
-  const data = [];
+  const allData = [];
 
+  // 全駅のローカルデータ取得
   for (let key in localStorage) {
     if (key.startsWith("michinoeki_")) {
       const id = key.replace("michinoeki_", "");
       const saved = JSON.parse(localStorage.getItem(key) || "{}");
-
-      const row = {
-        ID: id,
-        ticket: saved.ticket ? "1" : "0"
-      };
-
       const visits = Array.isArray(saved.visits) ? saved.visits : [];
-      if (visits.length === 0) visits.push({ date: "" }); // 空でも1列確保
-
-      visits.forEach((v, i) => {
-        row[`visit${i + 1}`] = v && v.date ? v.date : "";
-      });
-
-      data.push(row);
+      allData.push({ id, ticket: saved.ticket ? "1" : "0", visits });
     }
   }
 
-  const csv = Papa.unparse(data);
+  // 最大訪問回数を算出
+  const maxVisits = Math.max(...allData.map(d => d.visits.length), 0);
+
+  // 出力データ生成
+  const data = allData.map(d => {
+    const row = { ID: d.id, ticket: d.ticket };
+    d.visits.forEach((v, i) => {
+      row[`visit${i + 1}`] = v.date || "";
+    });
+    // 空欄補完
+    for (let i = d.visits.length; i < maxVisits; i++) {
+      row[`visit${i + 1}`] = "";
+    }
+    return row;
+  });
+
+  // ヘッダー固定（列落ち防止）
+  const headers = ["ID", "ticket"];
+  for (let i = 1; i <= maxVisits; i++) headers.push(`visit${i}`);
+
+  const csv = Papa.unparse({ fields: headers, data });
+
+  // ファイル出力
   const now = new Date();
   const pad = n => n.toString().padStart(2, "0");
   const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
