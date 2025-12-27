@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSV複数行対応版）</title>
+<title>道の駅ビューワー（CSV横方向対応版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -15,22 +15,20 @@
   input[type="text"] { width: 100%; background: #e8f5e9; border: 1px solid #81c784; border-radius: 8px; padding: 8px 36px 8px 10px; font-size: 16px; box-sizing: border-box; }
   .clear-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #388e3c; font-size: 20px; cursor: pointer; display: none; }
   .sort-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
-.sort-buttons button {
-  background: #81c784;
-  color: #033;                /* ← これを追加！文字色を元の濃い緑に */
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-.sort-buttons button.active {
-  background: #4caf50;
-  color: #fff;                /* アクティブ時は白文字 */
-}
-  .sort-buttons button:hover { background: #66bb6a; }
-  .sort-buttons button.active { background: #4caf50; color: #fff; }
+  .sort-buttons button {
+    background: #81c784;
+    color: #033;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  .sort-buttons button.active {
+    background: #4caf50;
+    color: #fff;
+  }
   .csv-menu { display: none; position: absolute; left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid #81c784; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); overflow: hidden; min-width: 130px; margin-top: 6px; z-index: 10; }
   .csv-menu button { display: block; width: 100%; border: none; background: #fff; padding: 10px 16px; text-align: center; cursor: pointer; }
   .csv-menu button:hover { background: #c8e6c9; }
@@ -141,29 +139,29 @@ csvMainBtn.addEventListener("click", (e)=>{
 });
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
-/* ===== CSVエクスポート（複数行対応） ===== */
-document.getElementById("exportCSVBtn").addEventListener("click", ()=>{
+/* ===== CSVエクスポート（横方向に訪問日展開） ===== */
+document.getElementById("exportCSVBtn").addEventListener("click", () => {
   const data = [];
+
   for (let key in localStorage) {
     if (key.startsWith("michinoeki_")) {
       const id = key.replace("michinoeki_", "");
       const saved = JSON.parse(localStorage.getItem(key));
-      const visits = saved.visits?.length ? saved.visits : [ { date: "" } ];
-      visits.forEach(v => {
-        data.push({
-          ID: id,
-          ticket: saved.ticket ? "1" : "0",
-          visit_date: v.date || ""
-        });
+      const row = {
+        ID: id,
+        ticket: saved.ticket ? "1" : "0"
+      };
+      saved.visits?.forEach((v, i) => {
+        row[`visit${i + 1}`] = v.date;
       });
+      data.push(row);
     }
   }
 
   const csv = Papa.unparse(data);
-
   const now = new Date();
   const pad = n => n.toString().padStart(2, "0");
-  const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
   const filename = `michinoeki_data_${timestamp}.csv`;
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -177,7 +175,7 @@ document.getElementById("exportCSVBtn").addEventListener("click", ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* ===== CSVインポート（複数行対応） ===== */
+/* ===== CSVインポート（横方向対応） ===== */
 document.getElementById("importCSVBtn").addEventListener("click", ()=> document.getElementById("csvFile").click());
 document.getElementById("csvFile").addEventListener("change", (e)=>{
   const file = e.target.files[0];
@@ -185,23 +183,26 @@ document.getElementById("csvFile").addEventListener("change", (e)=>{
   Papa.parse(file, {
     header: true,
     complete: result => {
-      const map = {};
       result.data.forEach(row=>{
         if (!row.ID) return;
-        if (!map[row.ID]) map[row.ID] = { ticket: row.ticket === "1", visits: [] };
-        if (row.visit_date) map[row.ID].visits.push({ date: row.visit_date });
+        const visits = [];
+        Object.keys(row).forEach(k=>{
+          if (k.startsWith("visit") && row[k]) visits.push({ date: row[k] });
+        });
+        visits.sort((a,b)=> new Date(b.date) - new Date(a.date));
+        const saved = {
+          ticket: row.ticket === "1",
+          visits: visits
+        };
+        localStorage.setItem(`michinoeki_${row.ID}`, JSON.stringify(saved));
       });
-      for (const [id, saved] of Object.entries(map)) {
-        saved.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
-        localStorage.setItem(`michinoeki_${id}`, JSON.stringify(saved));
-      }
-      alert("CSVインポートが完了しました！");
+      alert("CSVインポートが完了しました！（横方向対応）");
       renderFiltered();
     }
   });
 });
 
-/* ===== 以下同様（UI描画等） ===== */
+/* ===== UI描画など ===== */
 function renderFiltered(){
   let filtered = rows.filter(r=>{
     const matchSearch = currentSearch
