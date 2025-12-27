@@ -3,103 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSV時刻付き版）</title>
+<title>道の駅ビューワー（CSV複数行対応版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-  html, body {
-    background: #f0fff4;
-    color: #033;
-    font-family: "M PLUS 1 Code", monospace;
-    margin: 0;
-  }
-  header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 12px;
-    background: #a5d6a7;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
+  html, body { background: #f0fff4; color: #033; font-family: "M PLUS 1 Code", monospace; margin: 0; }
+  header { display: flex; flex-direction: column; align-items: center; padding: 12px; background: #a5d6a7; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   .search-wrapper { position: relative; width: 95%; max-width: 500px; }
-  input[type="text"] {
-    width: 100%;
-    background: #e8f5e9;
-    color: #033;
-    border: 1px solid #81c784;
-    border-radius: 8px;
-    padding: 8px 36px 8px 10px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  .clear-btn {
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; color: #388e3c; font-size: 20px; cursor: pointer; display: none;
-  }
-  .sort-buttons {
-    display: flex; gap: 8px; margin-top: 10px;
-    flex-wrap: wrap; justify-content: center;
-  }
-  .sort-buttons button {
-    background: #81c784; color: #033; border: none; border-radius: 6px;
-    padding: 6px 12px; cursor: pointer; font-size: 14px; transition: background 0.2s;
-  }
+  input[type="text"] { width: 100%; background: #e8f5e9; border: 1px solid #81c784; border-radius: 8px; padding: 8px 36px 8px 10px; font-size: 16px; box-sizing: border-box; }
+  .clear-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #388e3c; font-size: 20px; cursor: pointer; display: none; }
+  .sort-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .sort-buttons button { background: #81c784; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: background 0.2s; }
   .sort-buttons button:hover { background: #66bb6a; }
   .sort-buttons button.active { background: #4caf50; color: #fff; }
-
-  .csv-menu {
-    display: none; position: absolute; left: 50%; transform: translateX(-50%);
-    background: #fff; border: 1px solid #81c784; border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.25); overflow: hidden;
-    min-width: 130px; margin-top: 6px; z-index: 10;
-  }
-  .csv-menu button {
-    display: block; width: 100%; border: none; background: #fff;
-    color: #033; padding: 10px 16px; text-align: center;
-    cursor: pointer; font-size: 14px;
-  }
+  .csv-menu { display: none; position: absolute; left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid #81c784; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); overflow: hidden; min-width: 130px; margin-top: 6px; z-index: 10; }
+  .csv-menu button { display: block; width: 100%; border: none; background: #fff; padding: 10px 16px; text-align: center; cursor: pointer; }
   .csv-menu button:hover { background: #c8e6c9; }
-
   .container { padding: 10px; }
-  .row { display: flex; justify-content: space-between; align-items: flex-end;
-         padding: 10px 0; border-bottom: 1px solid #c8e6c9; }
+  .row { display: flex; justify-content: space-between; align-items: flex-end; padding: 10px 0; border-bottom: 1px solid #c8e6c9; }
   .left { flex: 2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .right { flex: 1; text-align: right; display: flex; flex-direction: column; }
   .name { font-size: 1.3em; font-weight: 600; color: #2e7d32; cursor: pointer; }
   .address { font-size: 0.9em; color: #555; }
   .last-visit { font-size: 0.9em; color: #1b5e20; }
   .ticket { font-size: 0.85em; color: #388e3c; }
-
-  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-           justify-content: center; align-items: center; }
-  .modal-content {
-    background: #fff; color: #111; padding: 20px; border-radius: 10px;
-    width: 70%; max-width: 800px; max-height: 90%; overflow-y: auto;
-  }
-  .visit-entry { border-bottom: 1px solid #ddd; padding: 4px 0;
-                 display: flex; justify-content: space-between; align-items: center; }
-  .delete-btn { background: none; border: none; color: #d32f2f; font-size: 16px; cursor: pointer; }
-  #ticketCheck { transform: scale(1.5); accent-color: #4caf50; cursor: pointer; }
-  label[for="ticketCheck"] { display: flex; justify-content: center; align-items: center; gap: 8px;
-                             font-size: 1.1em; margin: 10px 0; }
-  #visitDate {
-    background: #e8f5e9; border: 1px solid #81c784; border-radius: 6px;
-    padding: 6px; font-size: 15px; width: 160px;
-  }
-  .modal-buttons {
-    display: flex; justify-content: center; gap: 10px; margin-top: 10px;
-  }
-  .modal-buttons button {
-    flex: 1; max-width: 160px; padding: 10px; border: none; border-radius: 6px;
-    font-size: 15px; color: #fff; cursor: pointer;
-  }
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
+  .modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 70%; max-width: 800px; max-height: 90%; overflow-y: auto; }
+  .visit-entry { border-bottom: 1px solid #ddd; padding: 4px 0; display: flex; justify-content: space-between; align-items: center; }
+  .delete-btn { background: none; border: none; color: #d32f2f; cursor: pointer; }
+  #visitDate { background: #e8f5e9; border: 1px solid #81c784; border-radius: 6px; padding: 6px; font-size: 15px; width: 160px; }
+  .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+  .modal-buttons button { flex: 1; max-width: 160px; padding: 10px; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
   #addVisitBtn { background: #4caf50; }
-  #addVisitBtn:hover { background: #388e3c; }
   #closeModal2 { background: #d32f2f; }
-  #closeModal2:hover { background: #b71c1c; }
-  #visitCountLabel { color: #2e7d32; font-weight: 500; margin-left: 4px; }
 </style>
 </head>
 <body>
@@ -148,7 +86,7 @@ let currentSearch = "";
 let showOnlyTicket = false;
 let sortByVisitDate = false;
 
-/* ===== データ読込 ===== */
+/* ===== 駅データ読込 ===== */
 fetch(csvUrl)
   .then(r => r.text())
   .then(csvText => {
@@ -190,23 +128,26 @@ csvMainBtn.addEventListener("click", (e)=>{
 });
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
-/* ===== エクスポート ===== */
+/* ===== CSVエクスポート（複数行対応） ===== */
 document.getElementById("exportCSVBtn").addEventListener("click", ()=>{
   const data = [];
   for (let key in localStorage) {
     if (key.startsWith("michinoeki_")) {
       const id = key.replace("michinoeki_", "");
       const saved = JSON.parse(localStorage.getItem(key));
-      data.push({
-        ID: id,
-        ticket: saved.ticket ? "1" : "0",
-        visits: (saved.visits || []).map(v => v.date).join("|")
+      const visits = saved.visits?.length ? saved.visits : [ { date: "" } ];
+      visits.forEach(v => {
+        data.push({
+          ID: id,
+          ticket: saved.ticket ? "1" : "0",
+          visit_date: v.date || ""
+        });
       });
     }
   }
+
   const csv = Papa.unparse(data);
 
-  // 時刻付きファイル名を生成
   const now = new Date();
   const pad = n => n.toString().padStart(2, "0");
   const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
@@ -223,34 +164,31 @@ document.getElementById("exportCSVBtn").addEventListener("click", ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* ===== インポート ===== */
-document.getElementById("importCSVBtn").addEventListener("click", ()=>{
-  document.getElementById("csvFile").click();
-});
-
+/* ===== CSVインポート（複数行対応） ===== */
+document.getElementById("importCSVBtn").addEventListener("click", ()=> document.getElementById("csvFile").click());
 document.getElementById("csvFile").addEventListener("change", (e)=>{
   const file = e.target.files[0];
   if (!file) return;
   Papa.parse(file, {
     header: true,
     complete: result => {
+      const map = {};
       result.data.forEach(row=>{
         if (!row.ID) return;
-        const key = `michinoeki_${row.ID}`;
-        const visits = row.visits ? row.visits.split("|").filter(v=>v).map(v=>({date:v})) : [];
-        const saved = {
-          ticket: row.ticket === "1",
-          visits: visits.sort((a,b)=>new Date(b.date)-new Date(a.date))
-        };
-        localStorage.setItem(key, JSON.stringify(saved));
+        if (!map[row.ID]) map[row.ID] = { ticket: row.ticket === "1", visits: [] };
+        if (row.visit_date) map[row.ID].visits.push({ date: row.visit_date });
       });
+      for (const [id, saved] of Object.entries(map)) {
+        saved.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        localStorage.setItem(`michinoeki_${id}`, JSON.stringify(saved));
+      }
       alert("CSVインポートが完了しました！");
       renderFiltered();
     }
   });
 });
 
-/* ===== 一覧描画 ===== */
+/* ===== 以下同様（UI描画等） ===== */
 function renderFiltered(){
   let filtered = rows.filter(r=>{
     const matchSearch = currentSearch
@@ -294,10 +232,8 @@ function renderFiltered(){
   });
 }
 
-/* ===== 詳細モーダル ===== */
 const modal=document.getElementById("detailModal");
 document.getElementById("closeModal2").addEventListener("click",()=>modal.style.display="none");
-
 function openDetail(r){
   currentId=r['ID'];
   modal.style.display="flex";
@@ -308,7 +244,6 @@ function openDetail(r){
   document.getElementById("ticketCheck").checked=saved.ticket;
   renderVisits(saved.visits);
 }
-
 document.getElementById("ticketCheck").addEventListener("change",e=>{
   if(!currentId)return;
   const saved=JSON.parse(localStorage.getItem(`michinoeki_${currentId}`)||'{"visits":[],"ticket":false}');
@@ -316,8 +251,6 @@ document.getElementById("ticketCheck").addEventListener("change",e=>{
   localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(saved));
   renderFiltered();
 });
-
-/* ===== 訪問履歴 ===== */
 document.getElementById("addVisitBtn").addEventListener("click",()=>{
   const date=document.getElementById("visitDate").value;
   if(!date)return alert("訪問日を入力してください");
@@ -329,7 +262,6 @@ document.getElementById("addVisitBtn").addEventListener("click",()=>{
   renderVisits(saved.visits);
   renderFiltered();
 });
-
 function deleteVisit(i){
   const key=`michinoeki_${currentId}`;
   let saved=JSON.parse(localStorage.getItem(key)||'{"visits":[],"ticket":false}');
@@ -338,7 +270,6 @@ function deleteVisit(i){
   renderVisits(saved.visits);
   renderFiltered();
 }
-
 function renderVisits(visits){
   const list=document.getElementById("visitList");
   const countLabel=document.getElementById("visitCountLabel");
