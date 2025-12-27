@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSV統合ボタン版）</title>
+<title>道の駅ビューワー（CSV完全対応版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -218,7 +218,6 @@
 
     <label>訪問日：<input type="date" id="visitDate"></label>
 
-    <!-- 追加 & 閉じる ボタン並び -->
     <div class="modal-buttons">
       <button id="addVisitBtn">追加</button>
       <button id="closeModal2">閉じる</button>
@@ -277,6 +276,59 @@ csvMainBtn.addEventListener("click", (e)=>{
 });
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
+/* ===== CSVエクスポート ===== */
+document.getElementById("exportCSVBtn").addEventListener("click", ()=>{
+  const data = [];
+  for (let key in localStorage) {
+    if (key.startsWith("michinoeki_")) {
+      const id = key.replace("michinoeki_", "");
+      const saved = JSON.parse(localStorage.getItem(key));
+      data.push({
+        ID: id,
+        ticket: saved.ticket ? "1" : "0",
+        visits: (saved.visits || []).map(v => v.date).join("|")
+      });
+    }
+  }
+  const csv = Papa.unparse(data);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "michinoeki_data.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ===== CSVインポート ===== */
+document.getElementById("importCSVBtn").addEventListener("click", ()=>{
+  document.getElementById("csvFile").click();
+});
+
+document.getElementById("csvFile").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  Papa.parse(file, {
+    header: true,
+    complete: result => {
+      result.data.forEach(row=>{
+        if (!row.ID) return;
+        const key = `michinoeki_${row.ID}`;
+        const visits = row.visits ? row.visits.split("|").filter(v=>v).map(v=>({date:v})) : [];
+        const saved = {
+          ticket: row.ticket === "1",
+          visits: visits.sort((a,b)=>new Date(b.date)-new Date(a.date))
+        };
+        localStorage.setItem(key, JSON.stringify(saved));
+      });
+      alert("CSVインポートが完了しました！");
+      renderFiltered();
+    }
+  });
+});
+
 /* ===== 一覧描画 ===== */
 function renderFiltered(){
   let filtered = rows.filter(r=>{
@@ -329,11 +381,8 @@ function openDetail(r){
   currentId=r['ID'];
   modal.style.display="flex";
   document.getElementById("modalName").textContent=r['名称'];
-
-  // 今日の日付を自動設定
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visitDate").value = today;
-
   const saved=JSON.parse(localStorage.getItem(`michinoeki_${currentId}`)||'{"visits":[],"ticket":false}');
   document.getElementById("ticketCheck").checked=saved.ticket;
   renderVisits(saved.visits);
