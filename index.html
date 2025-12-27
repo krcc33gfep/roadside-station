@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（整列デザイン・右下固定版）</title>
+<title>道の駅ビューワー（訪問回数表示付き）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -85,18 +85,17 @@
     color: #fff;
   }
 
-  /* 一覧部分 */
   .container {
     padding: 10px;
   }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end; /* ← 下揃えに変更 */
-  padding: 10px 0;
-  border-bottom: 1px solid #c8e6c9;
-}
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px 0;
+    border-bottom: 1px solid #c8e6c9;
+  }
 
   .left {
     flex: 2;
@@ -110,8 +109,8 @@
     text-align: right;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* 上下分離 */
-    min-height: 2.5em; /* 行高さ確保 */
+    justify-content: space-between;
+    min-height: 2.5em;
   }
 
   .name {
@@ -136,7 +135,7 @@
   .ticket {
     font-size: 0.85em;
     color: #388e3c;
-    margin-top: auto; /* 右下固定 */
+    margin-top: auto;
   }
 
   /* モーダル */
@@ -149,27 +148,27 @@
     align-items: center;
   }
 
-.modal-content {
-  background: #fff;
-  color: #111;
-  padding: 20px;
-  border-radius: 10px;
-  width: 70%;               /* ← 画面幅の70%に変更 */
-  max-width: 800px;         /* ← 広すぎ防止の上限設定 */
-  max-height: 90%;
-  overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2); /* 少し立体感を追加（任意） */
-}
-  
-#visitList {
-  max-height: 8em;          /* おおよそ3回分の高さ */
-  overflow-y: auto;          /* スクロールできるようにする */
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 4px;
-  background: #fafafa;
-  margin-top: 4px;
-}
+  .modal-content {
+    background: #fff;
+    color: #111;
+    padding: 20px;
+    border-radius: 10px;
+    width: 70%;
+    max-width: 800px;
+    max-height: 90%;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  #visitList {
+    max-height: 8em;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 4px;
+    background: #fafafa;
+    margin-top: 4px;
+  }
 
   .modal h2 {
     margin: 0 0 8px 0;
@@ -202,24 +201,22 @@
     cursor: pointer;
   }
 
-/* 切符購入チェック全体の中央寄せ */
-label[for="ticketCheck"], 
-label:has(#ticketCheck) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;               /* チェックボックスと文字の間隔 */
-  font-size: 1.1em;       /* 文字を少し大きく */
-  font-weight: 500;
-  margin: 10px 0;
-}
+  label[for="ticketCheck"], 
+  label:has(#ticketCheck) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1em;
+    font-weight: 500;
+    margin: 10px 0;
+  }
 
-/* チェックボックス自体を拡大 */
-#ticketCheck {
-  transform: scale(1.5);  /* サイズ1.5倍 */
-  accent-color: #4caf50;  /* チェック色を緑に（対応ブラウザ） */
-  cursor: pointer;
-}
+  #ticketCheck {
+    transform: scale(1.5);
+    accent-color: #4caf50;
+    cursor: pointer;
+  }
 
   input[type="date"], input[type="text"] {
     width: 100%;
@@ -229,26 +226,30 @@ label:has(#ticketCheck) {
     font-size: 14px;
   }
 
-button.add-btn {
-  margin: 12px auto 0;       /* ← 上に少し余白＋中央寄せ */
-  display: block;
-  width: 50%;                /* ← 全体の50%に変更 */
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 10px;
-  cursor: pointer;
-  font-size: 15px;
-  font-family: inherit;
-  text-align: center;
-}
+  button.add-btn {
+    margin: 12px auto 0;
+    display: block;
+    width: 50%;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-family: inherit;
+    text-align: center;
+  }
 
-button.add-btn:hover {
-  background: #388e3c;
-}
+  button.add-btn:hover {
+    background: #388e3c;
+  }
 
-  button.add-btn:hover { background: #388e3c; }
+  #visitCountLabel {
+    color: #2e7d32;
+    font-weight: 500;
+    margin-left: 4px;
+  }
 </style>
 </head>
 <body>
@@ -277,7 +278,7 @@ button.add-btn:hover {
       <input type="checkbox" id="ticketCheck"> 切符購入済
     </label>
 
-    <h3>訪問履歴</h3>
+    <h3>訪問履歴<span id="visitCountLabel"></span></h3>
     <div id="visitList"></div>
 
     <label>訪問日：<input type="date" id="visitDate"></label>
@@ -368,7 +369,9 @@ function render(data){
   data.forEach(r=>{
     const id = r['ID'];
     const saved = JSON.parse(localStorage.getItem(`michinoeki_${id}`) || "{}");
-    const lastVisit = saved.visits?.[0]?.date || "";
+    const visits = saved.visits || [];
+    const visitCount = visits.length;
+    const lastVisit = visits?.[0]?.date || "";
     const ticketLabel = saved.ticket ? "切符購入済" : "";
     const div = document.createElement("div");
     div.className = "row";
@@ -378,7 +381,7 @@ function render(data){
         <div class="address">${r['住所']||""}</div>
       </div>
       <div class="right">
-        <div class="last-visit">${lastVisit}</div>
+        <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
         <div class="ticket">${ticketLabel}</div>
       </div>
     `;
@@ -424,24 +427,15 @@ document.getElementById("addVisitBtn").addEventListener("click", () => {
   }
 
   const key = `michinoeki_${currentId}`;
-  // 既存データを取得・初期化
   let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
   if (!Array.isArray(saved.visits)) saved.visits = [];
 
-  // 新しい訪問を追加
   saved.visits.push({ date });
-
-  // 日付降順に並べ替え
   saved.visits.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  // 保存
   localStorage.setItem(key, JSON.stringify(saved));
 
-  // 表示更新
   renderVisits(saved.visits);
   renderFiltered();
-
-  // 入力リセット
   document.getElementById("visitDate").value = "";
 });
 
@@ -458,16 +452,23 @@ function deleteVisit(index){
 /* 履歴表示 */
 function renderVisits(visits){
   const list = document.getElementById("visitList");
-  if(!visits.length){
-    list.innerHTML = ""; // ← 空欄に変更
+  const countLabel = document.getElementById("visitCountLabel");
+  const count = visits.length;
+
+  if(!count){
+    list.innerHTML = "";
+    countLabel.textContent = "：0回";
     return;
   }
+
   list.innerHTML = visits.map((v,i)=>`
     <div class="visit-entry">
       <div>${v.date} ${v.note||""}</div>
       <button class="delete-btn" onclick="deleteVisit(${i})">🗑</button>
     </div>
   `).join("");
+
+  countLabel.textContent = `：${count}回`;
 }
 </script>
 
