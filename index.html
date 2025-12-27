@@ -149,16 +149,17 @@
     align-items: center;
   }
 
-  .modal-content {
-    background: #fff;
-    color: #111;
-    padding: 20px;
-    border-radius: 10px;
-    width: calc(100% - 40px);
-    max-width: 480px;
-    max-height: 90%;
-    overflow-y: auto;
-  }
+.modal-content {
+  background: #fff;
+  color: #111;
+  padding: 20px;
+  border-radius: 10px;
+  width: 70%;               /* ← 画面幅の70%に変更 */
+  max-width: 800px;         /* ← 広すぎ防止の上限設定 */
+  max-height: 90%;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2); /* 少し立体感を追加（任意） */
+}
 
   .modal h2 {
     margin: 0 0 8px 0;
