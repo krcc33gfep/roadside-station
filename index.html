@@ -202,11 +202,24 @@
     cursor: pointer;
   }
 
-  label {
-    display: block;
-    margin-top: 8px;
-    font-size: 0.9em;
-  }
+/* 切符購入チェック全体の中央寄せ */
+label[for="ticketCheck"], 
+label:has(#ticketCheck) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;               /* チェックボックスと文字の間隔 */
+  font-size: 1.1em;       /* 文字を少し大きく */
+  font-weight: 500;
+  margin: 10px 0;
+}
+
+/* チェックボックス自体を拡大 */
+#ticketCheck {
+  transform: scale(1.5);  /* サイズ1.5倍 */
+  accent-color: #4caf50;  /* チェック色を緑に（対応ブラウザ） */
+  cursor: pointer;
+}
 
   input[type="date"], input[type="text"] {
     width: 100%;
