@@ -108,21 +108,6 @@
   background: #c8e6c9;
 }
 
-  .csv-menu button {
-    display: block;
-    width: 100%;
-    border: none;
-    background: #fff;
-    color: #033;
-    padding: 8px 16px;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .csv-menu button:hover {
-    background: #c8e6c9;
-  }
-
   .container { padding: 10px; }
 
   .row {
@@ -162,12 +147,24 @@
   label[for="ticketCheck"] { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 1.1em; margin: 10px 0; }
 
   button.add-btn {
-    margin: 12px auto 0; display: block; width: 50%;
     background: #4caf50; color: white; border: none; border-radius: 6px;
     padding: 8px 10px; cursor: pointer; font-size: 15px;
   }
 
   button.add-btn:hover { background: #388e3c; }
+
+  /* 新しい閉じるボタン（赤） */
+  .close-btn2 {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+
+  .close-btn2:hover { background: #b71c1c; }
 
   #visitCountLabel { color: #2e7d32; font-weight: 500; margin-left: 4px; }
 </style>
@@ -208,7 +205,10 @@
     <div id="visitList"></div>
 
     <label>訪問日：<input type="date" id="visitDate"></label>
-    <button class="add-btn" id="addVisitBtn">追加</button>
+    <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+      <button class="add-btn" id="addVisitBtn">追加</button>
+      <button class="close-btn2" id="closeModal2">閉じる</button>
+    </div>
   </div>
 </div>
 
@@ -310,6 +310,7 @@ function renderFiltered(){
 /* ===== 詳細モーダル ===== */
 const modal=document.getElementById("detailModal");
 document.getElementById("closeModal").addEventListener("click",()=>modal.style.display="none");
+document.getElementById("closeModal2").addEventListener("click",()=>modal.style.display="none");
 
 function openDetail(r){
   currentId=r['ID'];
@@ -366,8 +367,7 @@ document.getElementById("exportCSVBtn").addEventListener("click",()=>{
   for(let i=0;i<localStorage.length;i++){
     const key=localStorage.key(i);
     if(!key.startsWith("michinoeki_"))continue;
-    const id=key.replace("michinoeki_","");
-    const saved=JSON.parse(localStorage.getItem(key));
+    const id=key.replace("michinoeki_",""); const saved=JSON.parse(localStorage.getItem(key));
     const visits=(saved.visits||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
     const ticket=saved.ticket?"○":"";
     const dates=visits.map(v=>v.date);
@@ -378,8 +378,6 @@ document.getElementById("exportCSVBtn").addEventListener("click",()=>{
   data.forEach(r=>rows.push(r));
   const csv=rows.map(r=>r.join(",")).join("\n");
   const blob=new Blob([csv],{type:"text/csv"});
-
-  // 日時文字列（例：202512271940）
   const now = new Date();
   const yyyy = now.getFullYear();
   const MM = String(now.getMonth()+1).padStart(2,"0");
@@ -387,9 +385,7 @@ document.getElementById("exportCSVBtn").addEventListener("click",()=>{
   const hh = String(now.getHours()).padStart(2,"0");
   const mm = String(now.getMinutes()).padStart(2,"0");
   const timestamp = `${yyyy}${MM}${dd}${hh}${mm}`;
-
   const filename = `michinoeki_data_${timestamp}.csv`;
-
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download=filename;
