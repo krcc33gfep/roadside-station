@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSV横方向対応版）</title>
+<title>道の駅ビューワー（CSV横方向確実出力版）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -139,21 +139,27 @@ csvMainBtn.addEventListener("click", (e)=>{
 });
 document.addEventListener("click", ()=> csvMenu.style.display = "none");
 
-/* ===== CSVエクスポート（横方向に訪問日展開） ===== */
+/* ===== CSVエクスポート（訪問日を横方向に確実出力） ===== */
 document.getElementById("exportCSVBtn").addEventListener("click", () => {
   const data = [];
 
   for (let key in localStorage) {
     if (key.startsWith("michinoeki_")) {
       const id = key.replace("michinoeki_", "");
-      const saved = JSON.parse(localStorage.getItem(key));
+      const saved = JSON.parse(localStorage.getItem(key) || "{}");
+
       const row = {
         ID: id,
         ticket: saved.ticket ? "1" : "0"
       };
-      saved.visits?.forEach((v, i) => {
-        row[`visit${i + 1}`] = v.date;
+
+      const visits = Array.isArray(saved.visits) ? saved.visits : [];
+      if (visits.length === 0) visits.push({ date: "" }); // 空でも1列確保
+
+      visits.forEach((v, i) => {
+        row[`visit${i + 1}`] = v && v.date ? v.date : "";
       });
+
       data.push(row);
     }
   }
