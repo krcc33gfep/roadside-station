@@ -96,7 +96,6 @@
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 8px;
-    cursor: pointer;
   }
 
   .row:hover { background: #e8f5e9; }
@@ -113,6 +112,7 @@
     font-weight: 600;
     color: #2e7d32;
     text-align: left;
+    cursor: pointer; /* 👈 駅名がクリック可能に */
   }
 
   .last-visit {
@@ -232,7 +232,7 @@
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
 
-  <!-- 🔘 ソートボタン（アイコン削除済） -->
+  <!-- 🔘 ソートボタン -->
   <div class="sort-buttons">
     <button id="filterTicket">購入済み</button>
     <button id="sortVisitDate">訪問日順</button>
@@ -358,7 +358,13 @@ function render(data){
         <div class="ticket">${ticketLabel}</div>
       </div>
     `;
-    div.addEventListener("click",()=>openDetail(r));
+
+    // 🔹 駅名クリックでのみ詳細モーダルを開く
+    div.querySelector(".name").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openDetail(r);
+    });
+
     out.appendChild(div);
   });
 }
