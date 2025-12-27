@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（CSVエクスポート・インポート対応）</title>
+<title>道の駅ビューワー（全履歴エクスポート対応）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -14,9 +14,7 @@
     color: #033;
     font-family: "M PLUS 1 Code", monospace;
     margin: 0;
-    -webkit-text-size-adjust: 100%;
   }
-
   header {
     display: flex;
     flex-direction: column;
@@ -25,231 +23,56 @@
     background: #a5d6a7;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-
-  .search-wrapper {
-    position: relative;
-    width: 90%;
-    max-width: 600px;
-  }
-
+  .search-wrapper { position: relative; width: 90%; max-width: 600px; }
   input[type="text"] {
-    width: 100%;
-    background: #e8f5e9;
-    color: #033;
-    border: 1px solid #81c784;
-    border-radius: 8px;
-    padding: 8px 30px 8px 10px;
-    font-size: 16px;
-    box-sizing: border-box;
+    width: 100%; background: #e8f5e9; color: #033; border: 1px solid #81c784;
+    border-radius: 8px; padding: 8px 30px 8px 10px; font-size: 16px;
   }
-
   .clear-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #388e3c;
-    font-size: 20px;
-    cursor: pointer;
-    display: none;
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #388e3c; font-size: 20px; cursor: pointer; display: none;
   }
-
-  .sort-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
+  .sort-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
   .sort-buttons button {
-    background: #81c784;
-    color: #033;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-size: 14px;
-    font-family: inherit;
-    transition: background 0.2s;
+    background: #81c784; color: #033; border: none; border-radius: 6px;
+    padding: 6px 12px; cursor: pointer; font-size: 14px; transition: background 0.2s;
   }
-
-  .sort-buttons button:hover {
-    background: #66bb6a;
-  }
-
-  .sort-buttons button.active {
-    background: #4caf50;
-    color: #fff;
-  }
-
-  .container {
-    padding: 10px;
-  }
-
+  .sort-buttons button:hover { background: #66bb6a; }
+  .sort-buttons button.active { background: #4caf50; color: #fff; }
+  .container { padding: 10px; }
   .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 10px 0;
-    border-bottom: 1px solid #c8e6c9;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 10px 0; border-bottom: 1px solid #c8e6c9;
   }
-
-  .left {
-    flex: 2;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .right {
-    flex: 1;
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 2.5em;
-  }
-
-  .name {
-    font-size: 1.3em;
-    font-weight: 600;
-    color: #2e7d32;
-    margin-bottom: 4px;
-    cursor: pointer;
-  }
-
-  .address {
-    font-size: 0.9em;
-    color: #555;
-  }
-
-  .last-visit {
-    font-size: 0.9em;
-    color: #1b5e20;
-    margin-bottom: 4px;
-  }
-
-  .ticket {
-    font-size: 0.85em;
-    color: #388e3c;
-    margin-top: auto;
-  }
-
-  /* モーダル */
+  .left { flex: 2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .right { flex: 1; text-align: right; display: flex; flex-direction: column; justify-content: space-between; }
+  .name { font-size: 1.3em; font-weight: 600; color: #2e7d32; margin-bottom: 4px; cursor: pointer; }
+  .address { font-size: 0.9em; color: #555; }
+  .last-visit { font-size: 0.9em; color: #1b5e20; margin-bottom: 4px; }
+  .ticket { font-size: 0.85em; color: #388e3c; }
   .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    justify-content: center;
-    align-items: center;
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    justify-content: center; align-items: center;
   }
-
   .modal-content {
-    background: #fff;
-    color: #111;
-    padding: 20px;
-    border-radius: 10px;
-    width: 70%;
-    max-width: 800px;
-    max-height: 90%;
-    overflow-y: auto;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    background: #fff; color: #111; padding: 20px; border-radius: 10px;
+    width: 70%; max-width: 800px; max-height: 90%; overflow-y: auto;
   }
-
-  #visitList {
-    max-height: 8em;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 4px;
-    background: #fafafa;
-    margin-top: 4px;
-  }
-
-  .modal h2 {
-    margin: 0 0 8px 0;
-    color: #2e7d32;
-    text-align: center;
-  }
-
-  .close-btn {
-    float: right;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #333;
-  }
-
+  .close-btn { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: #333; }
   .visit-entry {
-    border-bottom: 1px solid #ddd;
-    padding: 4px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    border-bottom: 1px solid #ddd; padding: 4px 0;
+    display: flex; justify-content: space-between; align-items: center;
   }
-
-  .delete-btn {
-    background: none;
-    border: none;
-    color: #d32f2f;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  label[for="ticketCheck"], 
-  label:has(#ticketCheck) {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.1em;
-    font-weight: 500;
-    margin: 10px 0;
-  }
-
-  #ticketCheck {
-    transform: scale(1.5);
-    accent-color: #4caf50;
-    cursor: pointer;
-  }
-
-  input[type="date"], input[type="text"] {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-
+  .delete-btn { background: none; border: none; color: #d32f2f; font-size: 16px; cursor: pointer; }
+  label[for="ticketCheck"] { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 1.1em; margin: 10px 0; }
+  #ticketCheck { transform: scale(1.5); accent-color: #4caf50; cursor: pointer; }
   button.add-btn {
-    margin: 12px auto 0;
-    display: block;
-    width: 50%;
-    background: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-    font-size: 15px;
-    font-family: inherit;
-    text-align: center;
+    margin: 12px auto 0; display: block; width: 50%;
+    background: #4caf50; color: white; border: none; border-radius: 6px;
+    padding: 8px 10px; cursor: pointer; font-size: 15px;
   }
-
-  button.add-btn:hover {
-    background: #388e3c;
-  }
-
-  #visitCountLabel {
-    color: #2e7d32;
-    font-weight: 500;
-    margin-left: 4px;
-  }
+  button.add-btn:hover { background: #388e3c; }
+  #visitCountLabel { color: #2e7d32; font-weight: 500; margin-left: 4px; }
 </style>
 </head>
 <body>
@@ -277,9 +100,7 @@
     <button class="close-btn" id="closeModal">&times;</button>
     <h2 id="modalName"></h2>
 
-    <label>
-      <input type="checkbox" id="ticketCheck"> 切符購入済
-    </label>
+    <label><input type="checkbox" id="ticketCheck"> 切符購入済</label>
 
     <h3>訪問履歴<span id="visitCountLabel"></span></h3>
     <div id="visitList"></div>
@@ -297,7 +118,7 @@ let currentSearch = "";
 let showOnlyTicket = false;
 let sortByVisitDate = false;
 
-/* CSV読込（駅データ） */
+/* ===== 駅データ読込 ===== */
 fetch(csvUrl)
   .then(r => r.text())
   .then(csvText => {
@@ -311,7 +132,7 @@ fetch(csvUrl)
     });
   });
 
-/* 検索 */
+/* ===== 検索 ===== */
 const search = document.getElementById("search");
 const clearBtn = document.getElementById("clearBtn");
 search.addEventListener("input", () => {
@@ -326,7 +147,7 @@ clearBtn.addEventListener("click", ()=>{
   renderFiltered();
 });
 
-/* ソート・フィルタ */
+/* ===== フィルタ・ソート ===== */
 document.getElementById("filterTicket").addEventListener("click", ()=>{
   showOnlyTicket = !showOnlyTicket;
   document.getElementById("filterTicket").classList.toggle("active", showOnlyTicket);
@@ -338,7 +159,7 @@ document.getElementById("sortVisitDate").addEventListener("click", ()=>{
   renderFiltered();
 });
 
-/* リスト描画 */
+/* ===== 駅一覧描画 ===== */
 function renderFiltered(){
   let filtered = rows.filter(r => {
     const matchSearch = currentSearch
@@ -348,7 +169,6 @@ function renderFiltered(){
 
     const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
     const matchTicket = showOnlyTicket ? saved.ticket : true;
-
     return matchSearch && matchTicket;
   });
 
@@ -362,14 +182,9 @@ function renderFiltered(){
     });
   }
 
-  render(filtered);
-}
-
-/* HTML描画 */
-function render(data){
   const out = document.getElementById("output");
   out.innerHTML = "";
-  data.forEach(r=>{
+  filtered.forEach(r=>{
     const id = r['ID'];
     const saved = JSON.parse(localStorage.getItem(`michinoeki_${id}`) || "{}");
     const visits = saved.visits || [];
@@ -388,20 +203,14 @@ function render(data){
         <div class="ticket">${ticketLabel}</div>
       </div>
     `;
-
-    div.querySelector(".name").addEventListener("click", (e) => {
-      e.stopPropagation();
-      openDetail(r);
-    });
-
+    div.querySelector(".name").addEventListener("click", (e)=>{ e.stopPropagation(); openDetail(r); });
     out.appendChild(div);
   });
 }
 
-/* モーダル */
+/* ===== モーダル ===== */
 const modal = document.getElementById("detailModal");
-const closeModal = document.getElementById("closeModal");
-closeModal.addEventListener("click", ()=> modal.style.display="none");
+document.getElementById("closeModal").addEventListener("click", ()=> modal.style.display="none");
 
 function openDetail(r){
   currentId = r['ID'];
@@ -412,7 +221,7 @@ function openDetail(r){
   renderVisits(saved.visits);
 }
 
-/* 切符チェック */
+/* ===== 切符チェック ===== */
 document.getElementById("ticketCheck").addEventListener("change", e=>{
   if(!currentId) return;
   const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
@@ -421,28 +230,22 @@ document.getElementById("ticketCheck").addEventListener("change", e=>{
   renderFiltered();
 });
 
-/* 訪問追加 */
+/* ===== 訪問追加 ===== */
 document.getElementById("addVisitBtn").addEventListener("click", () => {
   const date = document.getElementById("visitDate").value;
-  if (!date) {
-    alert("訪問日を入力してください");
-    return;
-  }
-
+  if (!date) return alert("訪問日を入力してください");
   const key = `michinoeki_${currentId}`;
   let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
   if (!Array.isArray(saved.visits)) saved.visits = [];
-
   saved.visits.push({ date });
-  saved.visits.sort((a, b) => new Date(b.date) - new Date(a.date));
+  saved.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
   localStorage.setItem(key, JSON.stringify(saved));
-
   renderVisits(saved.visits);
   renderFiltered();
   document.getElementById("visitDate").value = "";
 });
 
-/* 訪問削除 */
+/* ===== 訪問削除 ===== */
 function deleteVisit(index){
   const key = `michinoeki_${currentId}`;
   let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
@@ -452,72 +255,67 @@ function deleteVisit(index){
   renderFiltered();
 }
 
-/* 履歴表示 */
+/* ===== 履歴表示 ===== */
 function renderVisits(visits){
   const list = document.getElementById("visitList");
   const countLabel = document.getElementById("visitCountLabel");
   const count = visits.length;
-
-  if(!count){
-    list.innerHTML = "";
-    countLabel.textContent = "：0回";
-    return;
-  }
-
+  if(!count){ list.innerHTML=""; countLabel.textContent="：0回"; return; }
   list.innerHTML = visits.map((v,i)=>`
     <div class="visit-entry">
-      <div>${v.date} ${v.note||""}</div>
+      <div>${v.date}</div>
       <button class="delete-btn" onclick="deleteVisit(${i})">🗑</button>
     </div>
   `).join("");
-
   countLabel.textContent = `：${count}回`;
 }
 
-/* ===== CSVエクスポート ===== */
+/* ===== CSVエクスポート（訪問日1が最新） ===== */
 document.getElementById("exportCSVBtn").addEventListener("click", () => {
-  const rows = [["ID","訪問回数","最新訪問日","切符購入済"]];
-  for (let i = 0; i < localStorage.length; i++) {
+  const rows = [["ID","訪問回数","切符購入済"]];
+  let maxVisits = 0;
+  const dataList = [];
+  for (let i=0;i<localStorage.length;i++){
     const key = localStorage.key(i);
-    if (key.startsWith("michinoeki_")) {
-      const saved = JSON.parse(localStorage.getItem(key));
-      const id = key.replace("michinoeki_", "");
-      const visits = saved.visits || [];
-      const last = visits[0]?.date || "";
-      const count = visits.length;
-      const ticket = saved.ticket ? "○" : "";
-      rows.push([id, count, last, ticket]);
-    }
+    if(!key.startsWith("michinoeki_")) continue;
+    const id = key.replace("michinoeki_","");
+    const saved = JSON.parse(localStorage.getItem(key));
+    const visits = (saved.visits||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const count = visits.length;
+    const ticket = saved.ticket?"○":"";
+    const dates = visits.map(v=>v.date);
+    dataList.push([id,count,ticket,...dates]);
+    if(count>maxVisits) maxVisits=count;
   }
-  const csv = rows.map(r => r.join(",")).join("\n");
-  const blob = new Blob([csv], {type:"text/csv"});
+  for(let i=1;i<=maxVisits;i++){ rows[0].push(`訪問日${i}`); }
+  dataList.forEach(r=>rows.push(r));
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob([csv],{type:"text/csv"});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "michinoeki_data.csv";
-  a.click();
+  const a=document.createElement("a");
+  a.href=url;a.download="michinoeki_data_full.csv";a.click();
   URL.revokeObjectURL(url);
 });
 
-/* ===== CSVインポート ===== */
-const csvFile = document.getElementById("csvFile");
-document.getElementById("importCSVBtn").addEventListener("click", ()=> csvFile.click());
-
-csvFile.addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  Papa.parse(file, {
-    header: true,
-    complete: res => {
-      res.data.forEach(row => {
-        const id = row["ID"];
-        if (!id) return;
-        const count = parseInt(row["訪問回数"]) || 0;
-        const last = row["最新訪問日"] || "";
-        const ticket = row["切符購入済"] === "○";
-        const visits = last ? Array.from({length: count}, (_,i)=>({date:last})) : [];
-        localStorage.setItem(`michinoeki_${id}`, JSON.stringify({visits, ticket}));
+/* ===== CSVインポート（複数訪問日対応） ===== */
+const csvFile=document.getElementById("csvFile");
+document.getElementById("importCSVBtn").addEventListener("click",()=>csvFile.click());
+csvFile.addEventListener("change",e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  Papa.parse(file,{
+    header:true,
+    complete:res=>{
+      res.data.forEach(row=>{
+        const id=row["ID"];
+        if(!id)return;
+        const ticket=row["切符購入済"]==="○";
+        const visits=[];
+        Object.keys(row).forEach(k=>{
+          if(k.startsWith("訪問日") && row[k]) visits.push({date:row[k]});
+        });
+        visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        localStorage.setItem(`michinoeki_${id}`,JSON.stringify({visits,ticket}));
       });
       alert("CSVインポート完了！ページを再読み込みします。");
       location.reload();
@@ -525,6 +323,5 @@ csvFile.addEventListener("change", e => {
   });
 });
 </script>
-
 </body>
 </html>
