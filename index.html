@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（ソート機能付き）</title>
+<title>道の駅ビューワー（整列デザイン）</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -56,7 +56,6 @@
     display: none;
   }
 
-  /* ソートボタン */
   .sort-buttons {
     display: flex;
     gap: 8px;
@@ -86,26 +85,17 @@
     color: #fff;
   }
 
-  /* 一覧 */
+  /* 一覧部分 */
   .container {
     padding: 10px;
   }
 
   .row {
-    background: #0d1f0d;
-    color: #fff;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-family: "M PLUS 1 Code", monospace;
-    border: 1px solid #1b5e20;
-  }
-
-  .row:hover {
-    background: #163416;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #c8e6c9;
   }
 
   .left {
@@ -113,19 +103,38 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-weight: 600;
-    color: #a5d6a7;
-    font-size: 1em;
   }
 
   .right {
     flex: 1;
     text-align: right;
-    font-size: 0.9em;
-    color: #8bc34a;
   }
 
-  /* モーダル部分は変更なし */
+  .name {
+    font-size: 1em;
+    font-weight: 600;
+    color: #2e7d32;
+    margin-bottom: 4px;
+    cursor: pointer;
+  }
+
+  .address {
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  .last-visit {
+    font-size: 0.9em;
+    color: #1b5e20;
+    margin-bottom: 4px;
+  }
+
+  .ticket {
+    font-size: 0.8em;
+    color: #388e3c;
+  }
+
+  /* モーダル */
   .modal {
     display: none;
     position: fixed;
@@ -213,7 +222,6 @@
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
 
-  <!-- 🔘 ソートボタン -->
   <div class="sort-buttons">
     <button id="filterTicket">購入済み</button>
     <button id="sortVisitDate">訪問日順</button>
@@ -249,7 +257,7 @@ let currentSearch = "";
 let showOnlyTicket = false;
 let sortByVisitDate = false;
 
-/* 🧾 CSV読込 */
+/* CSV読込 */
 fetch(csvUrl)
   .then(r => r.text())
   .then(csvText => {
@@ -263,7 +271,7 @@ fetch(csvUrl)
     });
   });
 
-/* 🔍 検索 */
+/* 検索 */
 const search = document.getElementById("search");
 const clearBtn = document.getElementById("clearBtn");
 search.addEventListener("input", () => {
@@ -278,20 +286,19 @@ clearBtn.addEventListener("click", ()=>{
   renderFiltered();
 });
 
-/* 🎫 ソート・フィルタボタン */
+/* ソート・フィルタ */
 document.getElementById("filterTicket").addEventListener("click", ()=>{
   showOnlyTicket = !showOnlyTicket;
   document.getElementById("filterTicket").classList.toggle("active", showOnlyTicket);
   renderFiltered();
 });
-
 document.getElementById("sortVisitDate").addEventListener("click", ()=>{
   sortByVisitDate = !sortByVisitDate;
   document.getElementById("sortVisitDate").classList.toggle("active", sortByVisitDate);
   renderFiltered();
 });
 
-/* 🎨 リスト描画 */
+/* リスト描画 */
 function renderFiltered(){
   let filtered = rows.filter(r => {
     const matchSearch = currentSearch
@@ -318,7 +325,7 @@ function renderFiltered(){
   render(filtered);
 }
 
-/* 🧱 レンダリング */
+/* HTML描画 */
 function render(data){
   const out = document.getElementById("output");
   out.innerHTML = "";
@@ -330,17 +337,16 @@ function render(data){
     const div = document.createElement("div");
     div.className = "row";
     div.innerHTML = `
-      <div class="top-line">
+      <div class="left">
         <div class="name">${r['名称']||"（名称不明）"}</div>
-        <div class="last-visit">${lastVisit}</div>
-      </div>
-      <div class="bottom-line">
         <div class="address">${r['住所']||""}</div>
+      </div>
+      <div class="right">
+        <div class="last-visit">${lastVisit}</div>
         <div class="ticket">${ticketLabel}</div>
       </div>
     `;
 
-    // 🔹 駅名クリックでのみ詳細モーダルを開く
     div.querySelector(".name").addEventListener("click", (e) => {
       e.stopPropagation();
       openDetail(r);
@@ -350,7 +356,7 @@ function render(data){
   });
 }
 
-/* 🔍 詳細モーダル */
+/* モーダル */
 const modal = document.getElementById("detailModal");
 const closeModal = document.getElementById("closeModal");
 closeModal.addEventListener("click", ()=> modal.style.display="none");
@@ -364,7 +370,7 @@ function openDetail(r){
   renderVisits(saved.visits);
 }
 
-/* 🎫 切符チェック */
+/* 切符チェック */
 document.getElementById("ticketCheck").addEventListener("change", e=>{
   if(!currentId) return;
   const saved = JSON.parse(localStorage.getItem(`michinoeki_${currentId}`) || '{"visits":[],"ticket":false}');
@@ -373,7 +379,7 @@ document.getElementById("ticketCheck").addEventListener("change", e=>{
   renderFiltered();
 });
 
-/* 📅 訪問履歴追加 */
+/* 訪問追加 */
 document.getElementById("addVisitBtn").addEventListener("click", ()=>{
   const date = document.getElementById("visitDate").value;
   if(!date){ alert("訪問日を入力してください"); return; }
@@ -389,7 +395,7 @@ document.getElementById("addVisitBtn").addEventListener("click", ()=>{
   document.getElementById("visitNote").value="";
 });
 
-/* 🗑 履歴削除 */
+/* 訪問削除 */
 function deleteVisit(index){
   const key = `michinoeki_${currentId}`;
   let saved = JSON.parse(localStorage.getItem(key) || '{"visits":[],"ticket":false}');
@@ -399,7 +405,7 @@ function deleteVisit(index){
   renderFiltered();
 }
 
-/* 🗒️ 履歴表示 */
+/* 履歴表示 */
 function renderVisits(visits){
   const list = document.getElementById("visitList");
   if(!visits.length){
