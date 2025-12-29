@@ -433,9 +433,13 @@ document.getElementById("csvFile").addEventListener("change", (e)=>{
 /* ===== UI描画 ===== */
 function renderFiltered(){
   let filtered = rows.filter(r=>{
-    const matchSearch = currentSearch
-      ? (r['名称']||"").toLowerCase().includes(currentSearch) || (r['住所']||"").toLowerCase().includes(currentSearch)
-      : true;
+// OR検索対応版（複数キーワードのどれかを含めばOK）
+const matchSearch = currentSearch
+  ? currentSearch.split(/\s+/).some(keyword =>
+      (r['名称'] || "").toLowerCase().includes(keyword) ||
+      (r['住所'] || "").toLowerCase().includes(keyword)
+    )
+  : true;
     const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
     const matchTicket = showOnlyTicket ? saved.ticket : true;
     return matchSearch && matchTicket;
