@@ -227,6 +227,15 @@ input[type="text"] {
   margin-right: 10px;
   cursor: pointer;
 }
+.ticket-label {
+  font-size: 0.9em;       /* 訪問履歴の文字サイズと揃える */
+  font-weight: 600;       /* 太字にする */
+  display: flex;
+  align-items: center;
+  gap: 6px;               /* テキストとチェックの間に少し余白 */
+  color: #1b5e20;         /* 他の文字と同系統の色 */
+}
+
 
 </style>
 </head>
@@ -265,7 +274,7 @@ input[type="text"] {
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
-    <label><input type="checkbox" id="ticketCheck"> 切符購入済</label>
+    <label class="ticket-label">切符購入：<input type="checkbox" id="ticketCheck"></label>
     <h3>訪問履歴<span id="visitCountLabel"></span></h3>
     <div id="visitList"></div>
     <label>訪問日：<input type="date" id="visitDate"></label>
