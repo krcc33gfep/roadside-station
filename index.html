@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>道の駅ビューワー</title>
+<style>
+  body { font-family: sans-serif; background-color: #f0fff0; margin:0; padding:0; }
+  header { background-color: #a0d080; padding: 10px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+  input[type=text] { flex:1; padding:5px; border-radius:4px; border:1px solid #ccc; }
+  button { padding:5px 10px; border:none; border-radius:4px; cursor:pointer; }
+  button.green { background-color:#6b9c6b; color:white; }
+  button.red { background-color:#d95a5a; color:white; }
+  ul { list-style:none; padding:0; margin:0; }
+  li { padding:10px; border-bottom:1px solid #ccc; cursor:pointer; }
+  li:hover { background-color:#e0ffe0; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4);
+           justify-content:center; align-items:center; }
+  .modal-content { background:white; padding:20px; border-radius:8px; width:90%; max-width:400px; }
+  .modal-content input[type=date] { padding:5px; }
+  .visit-list { max-height:150px; overflow:auto; margin-top:10px; }
+  .visit-item { display:flex; justify-content:space-between; margin-bottom:5px; }
+  .visit-item button { background:none; color:red; font-size:16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <input type="text" id="search" placeholder="検索（名称・住所）...">
+  <button class="green" id="exportCsv">CSV</button>
+</header>
+
+<ul id="stationList"></ul>
+
+<div class="modal" id="stationModal">
+  <div class="modal-content">
+    <h2 id="modalName"></h2>
+    <label>切符購入：<input type="checkbox" id="ticketCheckbox"></label>
+    <p>訪問履歴：</p>
+    <div class="visit-list" id="visitList"></div>
+    <label>訪問日：<input type="date" id="visitDate"></label>
+    <div style="margin-top:10px;">
+      <button class="green" id="addVisit">追加</button>
+      <button class="red" id="closeModal">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7xkJ5iwFTjE5lEdm2nRkhvPz0jXy8r41Hhc1J9g1cTz9yZlMPV3tGq4odNcuoGB0/pub?output=csv'; // 公開CSVリンク
+let stations = [];
+let stationData = {}; // localStorage用
+let currentStation = null;
+
+// CSV読み込み
+async function loadCsv() {
+  const res = await fetch(sheetCsvUrl);
+  const text = await res.text();
+  const lines = text.split('\n').filter(l=>l.trim());
+  stations = lines.map(line => {
+    const [name, address] = line.split(',');
+    return { name:name.trim(), address:address.trim() };
+  });
+  loadLocalStorage();
+  renderList();
+}
+
+// localStorageロード
+function loadLocalStorage() {
+  const data = localStorage.getItem('michinoekiData');
+  if(data) stationData = JSON.parse(data);
+}
+
+// localStorage保存
+function saveLocalStorage() {
+  localStorage.setItem('michinoekiData', JSON.stringify(stationData));
+}
+
+// 駅リスト表示
+function renderList(filter='') {
+  const listEl = document.getElementById('stationList');
+  listEl.innerHTML = '';
+  stations.filter(s => s.name.includes(filter) || s.address.includes(filter))
+          .forEach(s => {
+    const li = document.createElement('li');
+    const visits = stationData[s.name]?.visits?.length || 0;
+    const ticket = stationData[s.name]?.ticket ? '切符購入済' : '';
+    li.innerHTML = `<strong>${s.name}</strong> <span>${visits>0?visits+'回':''} ${ticket}</span><br><small>${s.address}</small>`;
+    li.addEventListener('click', () => openModal(s));
+    listEl.appendChild(li);
+  });
+}
+
+// モーダル開く
+function openModal(station) {
+  currentStation = station;
+  document.getElementById('modalName').textContent = station.name;
+  document.getElementById('ticketCheckbox').checked = stationData[station.name]?.ticket || false;
+  renderVisits();
+  document.getElementById('stationModal').style.display = 'flex';
+}
+
+// 訪問履歴表示
+function renderVisits() {
+  const visitEl = document.getElementById('visitList');
+  visitEl.innerHTML = '';
+  const visits = stationData[currentStation.name]?.visits || [];
+  visits.forEach((v,i) => {
+    const div = document.createElement('div');
+    div.className = 'visit-item';
+    div.innerHTML = `<span>${v}</span><button onclick="removeVisit(${i})">🗑</button>`;
+    visitEl.appendChild(div);
+  });
+}
+
+// 訪問追加
+document.getElementById('addVisit').addEventListener('click', () => {
+  const date = document.getElementById('visitDate').value;
+  if(!date) return alert('日付を選択してください');
+  if(!stationData[currentStation.name]) stationData[currentStation.name] = {visits:[], ticket:false};
+  stationData[currentStation.name].visits.push(date);
+  stationData[currentStation.name].ticket = document.getElementById('ticketCheckbox').checked;
+  saveLocalStorage();
+  renderVisits();
+  renderList(document.getElementById('search').value);
+});
+
+// 訪問削除
+function removeVisit(index) {
+  stationData[currentStation.name].visits.splice(index,1);
+  saveLocalStorage();
+  renderVisits();
+  renderList(document.getElementById('search').value);
+}
+
+// モーダル閉じる
+document.getElementById('closeModal').addEventListener('click', () => {
+  document.getElementById('stationModal').style.display = 'none';
+});
+
+// 検索
+document.getElementById('search').addEventListener('input', (e)=>{
+  renderList(e.target.value);
+});
+
+// CSVエクスポート
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  let csv = '名称,住所,訪問回数,訪問日一覧,切符購入済み\n';
+  stations.forEach(s=>{
+    const data = stationData[s.name] || {visits:[], ticket:false};
+    csv += `"${s.name}","${s.address}",${data.visits.length},"${data.visits.join(';')}","${data.ticket?'済':''}"\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const date = new Date();
+  const y = date.getFullYear().toString().padStart(4,'0');
+  const m = (date.getMonth()+1).toString().padStart(2,'0');
+  const d = date.getDate().toString().padStart(2,'0');
+  const h = date.getHours().toString().padStart(2,'0');
+  const mi = date.getMinutes().toString().padStart(2,'0');
+  const fileName = `michinoeki_data_${y}${m}${d}${h}${mi}.csv`;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+});
+
+loadCsv();
+</script>
+</body>
+</html>
