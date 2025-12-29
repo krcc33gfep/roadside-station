@@ -465,19 +465,25 @@ const matchSearch = currentSearch
     const visitCount=visits.length;
     const lastVisit=visits?.[0]?.date||"";
     const ticketLabel=saved.ticket?"切符購入済":"";
-    const div=document.createElement("div");
-    div.className="row";
-    div.innerHTML=`
-      <div class="left">
-        <div class="name">${r['名称']||"（名称不明）"}</div>
-        <div class="address">${r['住所']||""}</div>
-      </div>
-      <div class="right">
-        <div class="last-visit">${visitCount?`${visitCount}回 ${lastVisit}`:""}</div>
+// ==== テーブル構造版 ====
+const div = document.createElement("div");
+div.className = "row";
+div.innerHTML = `
+  <table style="width:100%; border-collapse:collapse;">
+    <tr>
+      <td class="left" style="vertical-align:top; width:70%;">
+        <div class="name">${r['名称'] || "（名称不明）"}</div>
+        <div class="address">${r['住所'] || ""}</div>
+      </td>
+      <td class="right" style="vertical-align:top; text-align:right;">
+        <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
         <div class="ticket">${ticketLabel}</div>
-      </div>`;
-    div.querySelector(".name").addEventListener("click",()=>openDetail(r));
-    out.appendChild(div);
+      </td>
+    </tr>
+  </table>
+`;
+div.querySelector(".name").addEventListener("click", () => openDetail(r));
+out.appendChild(div);
   });
 
   updateStats();
