@@ -465,17 +465,17 @@ const matchSearch = currentSearch
     const visitCount=visits.length;
     const lastVisit=visits?.[0]?.date||"";
     const ticketLabel=saved.ticket?"切符購入済":"";
-// ==== テーブル構造版 ====
+// ==== テーブル構造版（下揃え） ====
 const div = document.createElement("div");
 div.className = "row";
 div.innerHTML = `
   <table style="width:100%; border-collapse:collapse;">
     <tr>
-      <td class="left" style="vertical-align:top; width:70%;">
+      <td class="left" style="vertical-align:bottom; width:70%;">
         <div class="name">${r['名称'] || "（名称不明）"}</div>
         <div class="address">${r['住所'] || ""}</div>
       </td>
-      <td class="right" style="vertical-align:top; text-align:right;">
+      <td class="right" style="vertical-align:bottom; text-align:right;">
         <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
         <div class="ticket">${ticketLabel}</div>
       </td>
