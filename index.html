@@ -222,11 +222,22 @@ input[type="text"] {
   display: flex;
   align-items: center;
 }
-
-/* チェックボックスをテキストに揃える */
+/* 切符購入と訪問履歴を同じスタイルでそろえる */
+.ticket-row,
+.visit-header {
+  font-size: 1.05em;     /* ここで両者のサイズを統一（h3と同等） */
+  font-weight: 600;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 6px;
+}
+/* チェックボックスの見た目をテキストとバランスさせる */
 #ticketCheck {
-  transform: scale(1.2);  /* 少し拡大して文字とのバランスをとる */
+  transform: scale(1.2);
   cursor: pointer;
+  vertical-align: middle;
 }
 /* 「切符購入：」ラベル */
 .ticket-label {
@@ -276,8 +287,11 @@ input[type="text"] {
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
-    <label class="ticket-label">切符購入：<input type="checkbox" id="ticketCheck"></label>
-    <h3>訪問履歴<span id="visitCountLabel"></span></h3>
+<div class="ticket-row">
+  <span class="ticket-label">切符購入：</span>
+  <input type="checkbox" id="ticketCheck">
+</div>
+<h3 class="visit-header">訪問履歴<span id="visitCountLabel"></span></h3>
     <div id="visitList"></div>
     <label>訪問日：<input type="date" id="visitDate"></label>
     <div class="modal-buttons">
