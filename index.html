@@ -139,6 +139,7 @@ input[type="text"] {
   font-weight: 600;
   color: #2e7d32;
   cursor: pointer;
+  margin-top: 2px;        /* ← 新規追加（または既存margin削除） */
 }
 .address {
   font-size: 0.9em;
@@ -227,13 +228,15 @@ input[type="text"] {
   margin-right: 10px;
   cursor: pointer;
 }
+/* 「切符購入：」ラベル */
 .ticket-label {
-  font-size: 0.9em;       /* 訪問履歴の文字サイズと揃える */
-  font-weight: 600;       /* 太字にする */
+  font-size: 1em;         /* h3（訪問履歴）とほぼ同じサイズ */
+  font-weight: 600;       /* 太字 */
   display: flex;
   align-items: center;
-  gap: 6px;               /* テキストとチェックの間に少し余白 */
-  color: #1b5e20;         /* 他の文字と同系統の色 */
+  gap: 6px;               /* テキストとチェックの間隔 */
+  color: #000;            /* 黒に統一（訪問履歴と同じ） */
+  margin-top: 6px;        /* 少しだけ余白を空ける */
 }
 
 
