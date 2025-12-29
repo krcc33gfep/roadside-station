@@ -134,12 +134,14 @@ input[type="text"] {
   display: flex;
   flex-direction: column;
 }
+/* 駅名の上の余白をしっかり詰める */
 .name {
   font-size: 1.3em;
   font-weight: 600;
   color: #2e7d32;
   cursor: pointer;
-  margin-top: 2px;        /* ← 新規追加（または既存margin削除） */
+  margin-top: 0;          /* デフォルト余白をリセット */
+  line-height: 1.2;       /* コンパクトに */
 }
 .address {
   font-size: 0.9em;
@@ -221,22 +223,20 @@ input[type="text"] {
   align-items: center;
 }
 
+/* チェックボックスをテキストに揃える */
 #ticketCheck {
-  width: 24px;
-  height: 24px;
-  transform: scale(1.5);
-  margin-right: 10px;
+  transform: scale(1.2);  /* 少し拡大して文字とのバランスをとる */
   cursor: pointer;
 }
 /* 「切符購入：」ラベル */
 .ticket-label {
-  font-size: 1em;         /* h3（訪問履歴）とほぼ同じサイズ */
+  font-size: 1.1em;       /* h3「訪問履歴：」と同じくらいの大きさ */
   font-weight: 600;       /* 太字 */
   display: flex;
   align-items: center;
-  gap: 6px;               /* テキストとチェックの間隔 */
-  color: #000;            /* 黒に統一（訪問履歴と同じ） */
-  margin-top: 6px;        /* 少しだけ余白を空ける */
+  gap: 6px;
+  color: #000;            /* 黒に統一 */
+  margin: 8px 0 4px;      /* 上下のバランスをとる */
 }
 
 
