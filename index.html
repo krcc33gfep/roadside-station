@@ -431,14 +431,20 @@ document.getElementById("csvFile").addEventListener("change", (e)=>{
 
 /* ===== UI描画 ===== */
 function renderFiltered(){
-  let filtered = rows.filter(r=>{
-    const matchSearch = currentSearch
-      ? (r['名称']||"").toLowerCase().includes(currentSearch) || (r['住所']||"").toLowerCase().includes(currentSearch)
-      : true;
-    const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
-    const matchTicket = showOnlyTicket ? saved.ticket : true;
-    return matchSearch && matchTicket;
-  });
+let filtered = rows.filter(r => {
+  const name = (r['名称'] || "").toLowerCase();
+  const addr = (r['住所'] || "").toLowerCase();
+
+  // 検索語をスペース区切りで分割して AND 判定
+  const terms = currentSearch.split(/\s+/).filter(Boolean);
+  const matchSearch = terms.every(t =>
+    name.includes(t) || addr.includes(t)
+  );
+
+  const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
+  const matchTicket = showOnlyTicket ? saved.ticket : true;
+  return (currentSearch ? matchSearch : true) && matchTicket;
+});
 
   if(sortByVisitDate){
     filtered.sort((a,b)=>{
