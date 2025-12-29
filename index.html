@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -255,10 +256,6 @@ input[type="text"] {
   color: #000;
   margin: 8px 0 6px;
 }
-  #modalName {
-  color: #2e7d32;  /* 一覧の .name と同じフォントカラー */
-}
-
 
 </style>
 </head>
@@ -431,21 +428,21 @@ document.getElementById("csvFile").addEventListener("change", (e)=>{
 
 /* ===== UI描画 ===== */
 function renderFiltered(){
-let matchSearch = true;
-if (currentSearch) {
-  const terms = currentSearch
-    .split(/\s+/)                // スペースで分割（全角半角どちらもOK）
-    .map(t => t.trim())
-    .filter(t => t.length > 0);  // 空要素除去
+  let filtered = rows.filter(r=>{
+    const matchSearch = currentSearch
+      ? (r['名称']||"").toLowerCase().includes(currentSearch) || (r['住所']||"").toLowerCase().includes(currentSearch)
+      : true;
+    const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
+    const matchTicket = showOnlyTicket ? saved.ticket : true;
+    return matchSearch && matchTicket;
+  });
 
-  const name = (r['名称'] || "").toLowerCase();
-  const addr = (r['住所'] || "").toLowerCase();
-
-  // すべての検索語が、名称または住所に含まれているかチェック（AND検索）
-  matchSearch = terms.every(t =>
-    name.includes(t) || addr.includes(t)
-  );
-}
+  if(sortByVisitDate){
+    filtered.sort((a,b)=>{
+      const aSaved = JSON.parse(localStorage.getItem(`michinoeki_${a['ID']}`) || "{}");
+      const bSaved = JSON.parse(localStorage.getItem(`michinoeki_${b['ID']}`) || "{}");
+      return new Date(bSaved.visits?.[0]?.date || 0) - new Date(aSaved.visits?.[0]?.date || 0);
+    });
   }
 
   const out = document.getElementById("output");
