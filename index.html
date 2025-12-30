@@ -83,8 +83,8 @@ input[type="text"] {
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s;
-  width: 90px; /* ← 横幅を統一（好みに応じて80〜100pxでもOK） */
-  text-align: center;
+  width: 90px; /* ← 横幅統一 */
+  text-align: center;     /* ← ボタン内文字中央寄せ */
 }
 .sort-buttons button.active {
   background: #4caf50;
@@ -279,17 +279,24 @@ input[type="text"] {
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
 
-<div class="sort-buttons">
-  <button id="sortVisitDate">訪問</button>
-  <button id="filterTicket">切符</button>
-  <div style="position: relative;">
-    <button id="csvMainBtn">保存</button>
-    <div class="csv-menu" id="csvMenu">
-      <button id="exportCSVBtn">エクスポート</button>
-      <button id="importCSVBtn">インポート</button>
+<div class="header-bottom">
+  <div class="sort-buttons">
+    <button id="sortVisitDate">訪問</button>
+    <button id="filterTicket">切符</button>
+    <div style="position: relative;">
+      <button id="csvMainBtn">保存</button>
+      <div class="csv-menu" id="csvMenu">
+        <button id="exportCSVBtn">エクスポート</button>
+        <button id="importCSVBtn">インポート</button>
+      </div>
     </div>
+    <input type="file" id="csvFile" accept=".csv" style="display:none;">
   </div>
-  <input type="file" id="csvFile" accept=".csv" style="display:none;">
+
+  <!-- ← 統計ボックスはボタン横に残す -->
+  <div class="stats-box" id="statsBox">
+    訪問：0<br>切符：0
+  </div>
 </div>
 
   <!-- statsBox を後方に配置 -->
