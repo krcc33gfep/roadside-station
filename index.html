@@ -476,16 +476,18 @@ div.className = "row";
 div.innerHTML = `
   <table style="width:100%; border-collapse:collapse;">
     <tr>
-<td class="left" style="vertical-align:bottom; width:70%; height:100%;">
-  <div style="display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
-  <div class="name">${r['名称'] || "（名称不明）"}</div>
-  <div class="address">${r['住所'] || ""}</div>
-</td>
-<td class="right" style="vertical-align:bottom; text-align:right; height:100%;">
-  <div style="display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; height:100%;">
-  <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
-  <div class="ticket">${ticketLabel}</div>
-</td>
+      <td class="left" style="vertical-align:bottom; width:70%; height:100%;">
+        <div style="display:flex; flex-direction:column; justify-content:flex-end; height:100%;">
+          <div class="name">${r['名称'] || "（名称不明）"}</div>
+          <div class="address">${r['住所'] || ""}</div>
+        </div>
+      </td>
+      <td class="right" style="vertical-align:bottom; text-align:right; height:100%;">
+        <div style="display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; height:100%;">
+          <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
+          <div class="ticket">${ticketLabel}</div>
+        </div>
+      </td>
     </tr>
   </table>
 `;
