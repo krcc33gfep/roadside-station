@@ -54,19 +54,21 @@ input[type="text"] {
 .header-bottom {
   display: flex;
   align-items: center;
-  justify-content: center;  /* ← 中央寄せに変更 */
+  justify-content: center;
   width: 100%;
   gap: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;        /* ← 下に折り返さない */
+  flex-wrap: nowrap;        /* これで1行維持 */
   margin-top: 8px;
 }
 
 .stats-box {
   font-size: 13px;
   line-height: 1.3;
-  text-align: left;      /* 左寄せに変更 */
+  text-align: left;
   color: #1b5e20;
-  min-width: 90px;
+  min-width: 100px;
+  white-space: nowrap;   /* ← 折り返し防止 */
 }
 .sort-buttons {
   display: flex;
