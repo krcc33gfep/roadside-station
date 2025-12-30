@@ -15,6 +15,7 @@ html, body {
   color: #033;
   font-family: "M PLUS 1 Code", monospace;
   margin: 0;
+  overflow-x: hidden;  /* ← 横スクロールを無効化 */
 }
 header {
   display: flex;
@@ -550,8 +551,18 @@ function renderVisits(visits){
   const list=document.getElementById("visitList");
   const countLabel=document.getElementById("visitCountLabel");
   if(!visits.length){list.innerHTML="";countLabel.textContent="：0回";return;}
-  list.innerHTML=visits.map((v,i)=>`<div class="visit-entry"><div>${v.date}</div><button class="delete-btn" onclick="deleteVisit(${i})">🗑</button></div>`).join("");
-  countLabel.textContent=`：${visits.length}回`;
+
+  // ▼ ここで日付を統一フォーマット（YYYY-MM-DD）に変換
+  list.innerHTML = visits.map((v,i) => {
+    const dateObj = new Date(v.date);
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    const formatted = `${y}-${m}-${d}`;
+    return `<div class="visit-entry"><div>${formatted}</div><button class="delete-btn" onclick="deleteVisit(${i})">🗑</button></div>`;
+  }).join("");
+
+  countLabel.textContent = `：${visits.length}回`;
 }
 </script>
 </body>
