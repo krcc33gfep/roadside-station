@@ -154,7 +154,7 @@ input[type="text"] {
 
   <div class="header-bottom">
     <div class="sort-buttons">
-      <button id="toggleVisited">訪問済</button>
+      <button id="toggleVisited">全部</button>
       <div style="position:relative">
         <button id="csvMainBtn">保存</button>
         <div class="csv-menu" id="csvMenu">
@@ -188,9 +188,13 @@ search.addEventListener("input",()=>{
 });
 clearBtn.onclick=()=>{search.value="";currentSearch="";clearBtn.style.display="none";renderFiltered();};
 
-document.getElementById("toggleVisited").onclick=()=>{
-  viewMode=viewMode?0:1;
-  document.getElementById("toggleVisited").textContent=viewMode?"全部":"訪問済";
+document.getElementById("toggleVisited").onclick = () => {
+  viewMode = viewMode ? 0 : 1;
+
+  // 表示中の状態と逆の文言を出す
+  document.getElementById("toggleVisited").textContent =
+    viewMode === 0 ? "全部" : "訪問済み";
+
   renderFiltered();
 };
 
