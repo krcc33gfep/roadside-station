@@ -9,236 +9,175 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-html, body {
-  background: #f0fff4;
-  color: #033;
-  font-family: "M PLUS 1 Code", monospace;
-  margin: 0;
-  overflow-x: hidden;
+/* ===== ベース ===== */
+html,body{
+  margin:0;
+  background:#f0fff4;
+  color:#033;
+  font-family:"M PLUS 1 Code",monospace;
+  overflow-x:hidden;
 }
-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px;
-  background: #a5d6a7;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+header{
+  padding:12px;
+  background:#a5d6a7;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
-.search-wrapper {
-  position: relative;
-  width: 95%;
-  max-width: 500px;
+
+/* ===== 検索 ===== */
+.search-wrapper{
+  position:relative;
+  width:95%;
+  max-width:500px;
 }
-input[type="text"] {
-  width: 100%;
-  background: #e8f5e9;
-  border: 1px solid #81c784;
-  border-radius: 8px;
-  padding: 8px 36px 8px 10px;
-  font-size: 16px;
-  box-sizing: border-box;
+input[type="text"]{
+  width:100%;
+  padding:8px 36px 8px 10px;
+  border:1px solid #81c784;
+  border-radius:8px;
+  background:#e8f5e9;
+  font-size:16px;
 }
-.clear-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #388e3c;
-  font-size: 20px;
-  cursor: pointer;
-  display: none;
+.clear-btn{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:20px;
+  border:none;
+  background:none;
+  color:#388e3c;
+  cursor:pointer;
+  display:none;
 }
-.header-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 20px;
-  flex-wrap: nowrap;
-  margin-top: 8px;
+
+/* ===== ヘッダ下 ===== */
+.header-bottom{
+  margin-top:8px;
+  width:100%;
+  display:flex;
+  gap:20px;
+  justify-content:center;
+  align-items:center;
 }
-.stats-box {
-  font-size: 13px;
-  line-height: 1.3;
-  text-align: left;
-  color: #1b5e20;
-  min-width: 100px;
-  white-space: nowrap;
+.sort-buttons{
+  display:flex;
+  gap:8px;
 }
-.sort-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
+.sort-buttons button{
+  width:60px;
+  padding:6px 12px;
+  font-size:16px;
+  border:none;
+  border-radius:6px;
+  background:#81c784;
+  cursor:pointer;
 }
-.sort-buttons button {
-  background: #81c784;
-  color: #033;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s;
-  width: 60px;
-  text-align: center;
+.sort-buttons button.active{
+  background:#4caf50;
+  color:#fff;
 }
-.sort-buttons button.active {
-  background: #4caf50;
-  color: #fff;
+.stats-box{
+  font-size:13px;
+  color:#1b5e20;
+  white-space:nowrap;
 }
-.csv-menu {
-  display: none;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff;
-  border: 1px solid #81c784;
-  border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
-  overflow: hidden;
-  min-width: 130px;
-  margin-top: 6px;
-  z-index: 10;
+
+/* ===== CSV ===== */
+.csv-menu{
+  display:none;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  background:#fff;
+  border:1px solid #81c784;
+  border-radius:8px;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+  overflow:hidden;
+  z-index:10;
 }
-.csv-menu button {
-  display: block;
-  width: 100%;
-  border: none;
-  background: #fff;
-  padding: 10px 16px;
-  text-align: center;
-  cursor: pointer;
+.csv-menu button{
+  width:100%;
+  padding:10px 16px;
+  border:none;
+  background:#fff;
+  cursor:pointer;
 }
-.csv-menu button:hover {
-  background: #c8e6c9;
+.csv-menu button:hover{background:#c8e6c9}
+
+/* ===== リスト ===== */
+.container{padding:10px}
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #c8e6c9;
 }
-.container {
-  padding: 10px;
+.left{flex:2}
+.right{flex:1;text-align:right}
+.name{
+  font-size:1.3em;
+  font-weight:600;
+  color:#2e7d32;
+  cursor:pointer;
 }
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 10px 0;
-  border-bottom: 1px solid #c8e6c9;
+.address{font-size:.9em;color:#555}
+.last-visit{font-size:.9em;color:#1b5e20}
+.ticket{font-size:.85em;color:#388e3c}
+
+/* ===== モーダル ===== */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  justify-content:center;
+  align-items:center;
+  z-index:999;
 }
-.left {
-  flex: 2;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.modal-content{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  width:70%;
+  max-width:800px;
 }
-.right {
-  flex: 1;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-end;
+.visit-entry{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #ddd;
 }
-.name {
-  font-size: 1.3em;
-  font-weight: 600;
-  color: #2e7d32;
-  cursor: pointer;
-  margin-top: 0;
-  line-height: 1.2;
+.delete-btn{
+  background:none;
+  border:none;
+  color:#d32f2f;
+  cursor:pointer;
 }
-.address {
-  font-size: 0.9em;
-  color: #555;
+.modal-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
 }
-.last-visit {
-  font-size: 0.9em;
-  color: #1b5e20;
+.modal-buttons button{
+  flex:1;
+  padding:10px;
+  font-size:20px;
+  border:none;
+  border-radius:6px;
+  color:#fff;
 }
-.ticket {
-  font-size: 0.85em;
-  color: #388e3c;
-}
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-.modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 70%;
-  max-width: 800px;
-  max-height: 90%;
-  overflow-y: auto;
-}
-.visit-entry {
-  border-bottom: 1px solid #ddd;
-  padding: 4px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.delete-btn {
-  background: none;
-  border: none;
-  color: #d32f2f;
-  cursor: pointer;
-}
-#visitDate {
-  background: #e8f5e9;
-  border: 1px solid #81c784;
-  border-radius: 6px;
-  padding: 6px;
-  font-size: 20px;
-  width: 160px;
-}
-.modal-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-.modal-buttons button {
-  flex: 1;
-  max-width: 160px;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 20px; /* ← ★追加（お好みで変更） */
-}
-#addVisitBtn { background: #4caf50; }
-#closeModal2 { background: #d32f2f; }
-#visitList {
-  max-height: calc(3 * 34px);
-  overflow-y: auto;
-  margin-top: 8px;
-  border-top: 1px solid #c8e6c9;
-  padding-top: 4px;
-}
-.modal-heading {
-  font-size: 1.2em;
-  font-weight: 600;
-  color: #000;
-  margin: 8px 0 6px;
-}
-#modalName {
-  color: #2e7d32;
-}
+#addVisitBtn{background:#4caf50}
+#closeModal2{background:#d32f2f}
 </style>
 </head>
 
 <body>
+
 <header>
   <div class="search-wrapper">
-    <input id="search" type="text" placeholder="検索（名称・住所）...">
+    <input id="search" placeholder="検索（名称・住所）...">
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
 
@@ -246,7 +185,7 @@ input[type="text"] {
     <div class="sort-buttons">
       <button id="sortVisitDate">訪問</button>
       <button id="filterTicket">切符</button>
-      <div style="position: relative;">
+      <div style="position:relative">
         <button id="csvMainBtn">保存</button>
         <div class="csv-menu" id="csvMenu">
           <button id="exportCSVBtn">エクスポート</button>
@@ -254,26 +193,19 @@ input[type="text"] {
         </div>
       </div>
     </div>
-    <div class="stats-box" id="statsBox">
-      訪問：0<br>切符：0
-    </div>
+    <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
   </div>
 </header>
 
 <div class="container" id="output"></div>
 
-<!-- モーダル -->
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
-    <div class="modal-heading">
-      切符購入：<input type="checkbox" id="ticketCheck">
-    </div>
-    <div class="modal-heading">
-      訪問履歴<span id="visitCountLabel"></span>
-    </div>
-    <div id="visitList"></div>
-    <label>訪問日：<input type="date" id="visitDate"></label>
+    切符購入 <input type="checkbox" id="ticketCheck"><br><br>
+    訪問履歴<span id="visitCountLabel"></span>
+    <div id="visitList"></div><br>
+    <input type="date" id="visitDate">
     <div class="modal-buttons">
       <button id="addVisitBtn">追加</button>
       <button id="closeModal2">閉じる</button>
@@ -281,253 +213,149 @@ input[type="text"] {
   </div>
 </div>
 
-<!-- CSVインポート用 -->
-<input type="file" id="csvFile" style="display:none">
+<input type="file" id="csvFile" hidden>
 
 <script>
-const csvUrl = "https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
-let rows = [];
-let currentId = null;
-let currentSearch = "";
-let showOnlyTicket = false;
-let sortByVisitDate = false;
+const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
+const $=id=>document.getElementById(id);
+const emptyData={visits:[],ticket:false};
 
-/* ===== CSV読み込み ===== */
-fetch(csvUrl)
-  .then(r => r.text())
-  .then(csvText => {
-    Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true,
-      complete: res => { rows = res.data; renderFiltered(); }
-    });
-  });
+let rows=[],currentId=null;
+let searchWord="",onlyTicket=false,sortVisit=false;
+
+/* ===== 共通 ===== */
+const getSaved=id=>JSON.parse(localStorage.getItem("michinoeki_"+id)||JSON.stringify(emptyData));
+const setSaved=(id,data)=>localStorage.setItem("michinoeki_"+id,JSON.stringify(data));
+
+/* ===== CSV ===== */
+fetch(csvUrl).then(r=>r.text()).then(t=>{
+  Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
+    rows=r.data;render();
+  }});
+});
 
 /* ===== 検索 ===== */
-const search = document.getElementById("search");
-const clearBtn = document.getElementById("clearBtn");
-search.addEventListener("input", () => {
-  currentSearch = search.value.toLowerCase().trim();
-  clearBtn.style.display = currentSearch ? "block" : "none";
-  renderFiltered();
-});
-clearBtn.addEventListener("click", ()=>{
-  search.value="";
-  currentSearch="";
-  clearBtn.style.display="none";
-  renderFiltered();
-});
+$("search").oninput=e=>{
+  searchWord=e.target.value.trim().toLowerCase();
+  $("clearBtn").style.display=searchWord?"block":"none";
+  render();
+};
+$("clearBtn").onclick=()=>{
+  $("search").value="";
+  searchWord="";
+  $("clearBtn").style.display="none";
+  render();
+};
 
-/* ===== フィルタ・ソート ===== */
-document.getElementById("filterTicket").addEventListener("click", ()=>{
-  showOnlyTicket = !showOnlyTicket;
-  document.getElementById("filterTicket").classList.toggle("active", showOnlyTicket);
-  renderFiltered();
-});
-document.getElementById("sortVisitDate").addEventListener("click", ()=>{
-  sortByVisitDate = !sortByVisitDate;
-  document.getElementById("sortVisitDate").classList.toggle("active", sortByVisitDate);
-  renderFiltered();
-});
+/* ===== フィルタ ===== */
+$("filterTicket").onclick=()=>{
+  onlyTicket=!onlyTicket;
+  $("filterTicket").classList.toggle("active",onlyTicket);
+  render();
+};
+$("sortVisitDate").onclick=()=>{
+  sortVisit=!sortVisit;
+  $("sortVisitDate").classList.toggle("active",sortVisit);
+  render();
+};
 
-/* ===== CSVメニュー ===== */
-const csvMainBtn = document.getElementById("csvMainBtn");
-const csvMenu = document.getElementById("csvMenu");
-csvMainBtn.addEventListener("click", (e)=>{
-  e.stopPropagation();
-  csvMenu.style.display = csvMenu.style.display === "block" ? "none" : "block";
-});
-document.addEventListener("click", ()=> csvMenu.style.display = "none");
-
-/* ===== CSVエクスポート ===== */
-document.getElementById("exportCSVBtn").addEventListener("click", () => {
-  const allData = [];
-  for (let key in localStorage) {
-    if (key.startsWith("michinoeki_")) {
-      const id = key.replace("michinoeki_", "");
-      const saved = JSON.parse(localStorage.getItem(key) || "{}");
-      const visits = Array.isArray(saved.visits) ? saved.visits : [];
-      allData.push({ id, ticket: saved.ticket ? "1" : "0", visits });
-    }
-  }
-  const maxVisits = Math.max(...allData.map(d => d.visits.length), 0);
-  const data = allData.map(d => {
-    const row = { ID: d.id, ticket: d.ticket };
-    d.visits.forEach((v, i) => row[`visit${i + 1}`] = v.date || "");
-    for (let i = d.visits.length; i < maxVisits; i++) row[`visit${i + 1}`] = "";
-    return row;
-  });
-  const headers = ["ID", "ticket"];
-  for (let i = 1; i <= maxVisits; i++) headers.push(`visit${i}`);
-  const csv = Papa.unparse({ fields: headers, data });
-  const now = new Date();
-  const pad = n => n.toString().padStart(2, "0");
-  const timestamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
-  const filename = `michinoeki_data_${timestamp}.csv`;
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-});
-
-/* ===== CSVインポート ===== */
-document.getElementById("importCSVBtn").addEventListener("click", ()=> document.getElementById("csvFile").click());
-document.getElementById("csvFile").addEventListener("change", (e)=>{
-  const file = e.target.files[0];
-  if (!file) return;
-  Papa.parse(file, {
-    header: true,
-    complete: result => {
-      result.data.forEach(row=>{
-        if (!row.ID) return;
-        const visits = [];
-        Object.keys(row).forEach(k=>{
-          if (k.startsWith("visit") && row[k]) visits.push({ date: row[k] });
-        });
-        visits.sort((a,b)=> new Date(b.date) - new Date(a.date));
-        const saved = { ticket: row.ticket === "1", visits };
-        localStorage.setItem(`michinoeki_${row.ID}`, JSON.stringify(saved));
-      });
-      alert("CSVインポートが完了しました！");
-      renderFiltered();
-    }
-  });
-});
-
-/* ===== 表示更新 ===== */
-function renderFiltered(){
-  let filtered = rows.filter(r=>{
-    const matchSearch = currentSearch
-      ? currentSearch.split(/\s+/).some(keyword =>
-          (r['名称'] || "").toLowerCase().includes(keyword) ||
-          (r['住所'] || "").toLowerCase().includes(keyword)
-        )
-      : true;
-    const saved = JSON.parse(localStorage.getItem(`michinoeki_${r['ID']}`) || "{}");
-    const matchTicket = showOnlyTicket ? saved.ticket : true;
-    return matchSearch && matchTicket;
+/* ===== 描画 ===== */
+function render(){
+  let list=rows.filter(r=>{
+    const hit=!searchWord||[r.名称,r.住所].some(v=>(v||"").toLowerCase().includes(searchWord));
+    const saved=getSaved(r.ID);
+    return hit && (!onlyTicket||saved.ticket);
   });
 
-  if(sortByVisitDate){
-    filtered.sort((a,b)=>{
-      const aSaved = JSON.parse(localStorage.getItem(`michinoeki_${a['ID']}`) || "{}");
-      const bSaved = JSON.parse(localStorage.getItem(`michinoeki_${b['ID']}`) || "{}");
-      return new Date(bSaved.visits?.[0]?.date || 0) - new Date(aSaved.visits?.[0]?.date || 0);
+  if(sortVisit){
+    list.sort((a,b)=>{
+      const av=getSaved(a.ID).visits[0]?.date||0;
+      const bv=getSaved(b.ID).visits[0]?.date||0;
+      return new Date(bv)-new Date(av);
     });
   }
 
-  const out = document.getElementById("output");
-  out.innerHTML = "";
-  filtered.forEach(r=>{
-    const id=r['ID'];
-    const saved=JSON.parse(localStorage.getItem(`michinoeki_${id}`) || "{}");
-    const visits=saved.visits||[];
-    const visitCount=visits.length;
-    const lastVisit=visits?.[0]?.date||"";
-    const ticketLabel=saved.ticket?"切符購入済":"";
-
-    const div = document.createElement("div");
-    div.className = "row";
-    div.innerHTML = `
+  $("output").innerHTML="";
+  list.forEach(r=>{
+    const s=getSaved(r.ID);
+    const div=document.createElement("div");
+    div.className="row";
+    div.innerHTML=`
       <div class="left">
-        <div class="name">${r['名称'] || "（名称不明）"}</div>
-        <div class="address">${r['住所'] || ""}</div>
+        <div class="name">${r.名称}</div>
+        <div class="address">${r.住所||""}</div>
       </div>
       <div class="right">
-        <div class="last-visit">${visitCount ? `${visitCount}回 ${lastVisit}` : ""}</div>
-        <div class="ticket">${ticketLabel}</div>
-      </div>
-    `;
-    div.querySelector(".name").addEventListener("click", () => openDetail(r));
-    out.appendChild(div);
+        <div class="last-visit">${s.visits.length?s.visits.length+"回 "+s.visits[0].date:""}</div>
+        <div class="ticket">${s.ticket?"切符購入済":""}</div>
+      </div>`;
+    div.querySelector(".name").onclick=()=>openModal(r);
+    $("output").appendChild(div);
   });
 
   updateStats();
 }
 
-/* ===== 統計更新 ===== */
 function updateStats(){
-  let visitedCount = 0;
-  let purchasedCount = 0;
-  for (let key in localStorage){
-    if (key.startsWith("michinoeki_")){
-      const saved = JSON.parse(localStorage.getItem(key) || "{}");
-      if (saved.visits && saved.visits.length > 0) visitedCount++;
-      if (saved.ticket) purchasedCount++;
+  let v=0,t=0;
+  for(let k in localStorage){
+    if(k.startsWith("michinoeki_")){
+      const s=JSON.parse(localStorage[k]);
+      if(s.visits.length)v++;
+      if(s.ticket)t++;
     }
   }
-  document.getElementById("statsBox").innerHTML = `訪問：${visitedCount}<br>切符：${purchasedCount}`;
+  $("statsBox").innerHTML=`訪問：${v}<br>切符：${t}`;
 }
 
-/* ===== モーダル関連 ===== */
-const modal=document.getElementById("detailModal");
-document.getElementById("closeModal2").addEventListener("click",()=>modal.style.display="none");
-
-function openDetail(r){
-  currentId=r['ID'];
-  modal.style.display="flex";
-  document.getElementById("modalName").textContent=r['名称'];
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("visitDate").value = today;
-  const saved=JSON.parse(localStorage.getItem(`michinoeki_${currentId}`)||'{"visits":[],"ticket":false}');
-  document.getElementById("ticketCheck").checked=saved.ticket;
-  renderVisits(saved.visits);
+/* ===== モーダル ===== */
+function openModal(r){
+  currentId=r.ID;
+  $("modalName").textContent=r.名称;
+  $("detailModal").style.display="flex";
+  $("visitDate").value=new Date().toISOString().split("T")[0];
+  const s=getSaved(currentId);
+  $("ticketCheck").checked=s.ticket;
+  renderVisits(s.visits);
 }
+$("closeModal2").onclick=()=>$("detailModal").style.display="none";
+$("ticketCheck").onchange=e=>{
+  const s=getSaved(currentId);
+  s.ticket=e.target.checked;
+  setSaved(currentId,s);
+  render();
+};
+$("addVisitBtn").onclick=()=>{
+  const d=$("visitDate").value;
+  if(!d)return alert("日付を入力してください");
+  const s=getSaved(currentId);
+  s.visits.push({date:d});
+  s.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  setSaved(currentId,s);
+  renderVisits(s.visits);
+  render();
+};
 
-document.getElementById("ticketCheck").addEventListener("change",e=>{
-  if(!currentId)return;
-  const saved=JSON.parse(localStorage.getItem(`michinoeki_${currentId}`)||'{"visits":[],"ticket":false}');
-  saved.ticket=e.target.checked;
-  localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(saved));
-  renderFiltered();
-});
-
-document.getElementById("addVisitBtn").addEventListener("click",()=>{
-  const date=document.getElementById("visitDate").value;
-  if(!date)return alert("訪問日を入力してください");
-  const key=`michinoeki_${currentId}`;
-  let saved=JSON.parse(localStorage.getItem(key)||'{"visits":[],"ticket":false}');
-  saved.visits.push({date});
-  saved.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  localStorage.setItem(key,JSON.stringify(saved));
-  renderVisits(saved.visits);
-  renderFiltered();
-});
-
-function deleteVisit(i){
-  const key=`michinoeki_${currentId}`;
-  let saved=JSON.parse(localStorage.getItem(key)||'{"visits":[],"ticket":false}');
-  saved.visits.splice(i,1);
-  localStorage.setItem(key,JSON.stringify(saved));
-  renderVisits(saved.visits);
-  renderFiltered();
-}
-
-function renderVisits(visits){
-  const list=document.getElementById("visitList");
-  const countLabel=document.getElementById("visitCountLabel");
-  if(!visits.length){list.innerHTML="";countLabel.textContent="：0回";return;}
-
-  list.innerHTML="";
-  visits.forEach((v,i)=>{
-    const dateObj=new Date(v.date);
-    const y=dateObj.getFullYear();
-    const m=String(dateObj.getMonth()+1).padStart(2,"0");
-    const d=String(dateObj.getDate()).padStart(2,"0");
-    const formatted=`${y}-${m}-${d}`;
-    const entry=document.createElement("div");
-    entry.className="visit-entry";
-    entry.innerHTML=`<div>${formatted}</div>`;
-    const btn=document.createElement("button");
-    btn.className="delete-btn";
-    btn.textContent="🗑";
-    btn.addEventListener("click",()=>deleteVisit(i));
-    entry.appendChild(btn);
-    list.appendChild(entry);
+function renderVisits(vs){
+  $("visitList").innerHTML="";
+  $("visitCountLabel").textContent="："+vs.length+"回";
+  vs.forEach((v,i)=>{
+    const div=document.createElement("div");
+    div.className="visit-entry";
+    div.innerHTML=`<div>${v.date}</div>`;
+    const b=document.createElement("button");
+    b.textContent="🗑";
+    b.className="delete-btn";
+    b.onclick=()=>{
+      const s=getSaved(currentId);
+      s.visits.splice(i,1);
+      setSaved(currentId,s);
+      renderVisits(s.visits);
+      render();
+    };
+    div.appendChild(b);
+    $("visitList").appendChild(div);
   });
-  countLabel.textContent=`：${visits.length}回`;
 }
 </script>
 </body>
