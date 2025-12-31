@@ -146,16 +146,23 @@ input[type="text"] {
 .address { font-size: 0.9em; color: #555; }
 .last-visit { font-size: 0.9em; color: #1b5e20; }
 .ticket { font-size: 0.85em; color: #388e3c; }
+  .search-box {
+  position: relative;
+  width: 100%;
+}
+
 </style>
 </head>
 
 <body>
 <header>
-  <div class="search-wrapper">
-    <input id="search" type="text" placeholder="検索（名称・住所）...">
+<div class="search-wrapper">
+  <div class="search-box">
+    <input id="search" type="text">
     <button id="clearBtn" class="clear-btn">&times;</button>
-    <div id="resultCount"></div>
   </div>
+  <div id="resultCount"></div>
+</div>
 
   <div class="header-bottom">
     <div class="sort-buttons">
