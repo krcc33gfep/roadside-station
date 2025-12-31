@@ -198,7 +198,7 @@ document.getElementById("toggleVisited").onclick = () => {
 
   // 表示中の状態と逆の文言を出す
   document.getElementById("toggleVisited").textContent =
-    viewMode === 0 ? "全部" : "訪問済み";
+    viewMode === 0 ? "全部" : "訪問済";
 
   renderFiltered();
 };
@@ -243,7 +243,7 @@ function renderFiltered(){
         </div>
         <div class="right">
           <div class="last-visit">${s.visits?.[0]?.date||""}</div>
-          <div class="ticket">${s.ticket?"切符購入済":""}</div>
+          <div class="ticket">${s.ticket?"切符入手済":""}</div>
         </div>
       </div>
     `);
