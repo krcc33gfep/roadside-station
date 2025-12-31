@@ -171,7 +171,10 @@ input[type="text"]{
 .modal-content > div:not(#visitList):not(.modal-buttons){
   font-size: 1.2em;
 }
-
+.modal-content label{
+  display: block;
+  margin: 6px 0 4px;   /* ← 上下を詰める（好みで微調整OK） */
+}
 #visitDate{
   width: 180px;        /* ← 横幅を広げる（お好みで調整） */
   font-size: 20px;     /* ← 文字サイズを大きく */
@@ -341,7 +344,8 @@ function renderVisits(v){
   v.forEach((e,i)=>{
     const div=document.createElement("div");
     div.className="visit-entry";
-    div.innerHTML=`<div>${e.date}</div>`;
+    const formatted = e.date.replace(/\//g, "-");
+    div.innerHTML = `<div>${formatted}</div>`;
     const b=document.createElement("button");
     b.textContent="🗑";
     b.className="delete-btn";
