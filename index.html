@@ -167,11 +167,20 @@ input[type="text"]{
   border-radius:6px;
   color:#fff;
 }
+/* 切符購入・訪問履歴の見出し行 */
+.modal-content > div:not(#visitList):not(.modal-buttons){
+  font-size: 1.2em;
+}
+
 #visitDate{
   width: 180px;        /* ← 横幅を広げる（お好みで調整） */
   font-size: 20px;     /* ← 文字サイズを大きく */
   padding: 6px 8px;    /* ← タップしやすく */
 }
+#modalName{
+  color:#2e7d32;   /* ← 一覧の .name と同じ色 */
+}
+
 #addVisitBtn{background:#4caf50}
 #closeModal2{background:#d32f2f}
 </style>
