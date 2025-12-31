@@ -240,21 +240,29 @@ function renderFiltered(){
 
   const out=document.getElementById("output");
   out.innerHTML="";
-  filtered.forEach(r=>{
-    const s=JSON.parse(localStorage.getItem(`michinoeki_${r.ID}`)||"{}");
-    out.insertAdjacentHTML("beforeend",`
-      <div class="row">
-        <div class="left">
-          <div class="name">${r['名称']}</div>
-          <div class="address">${r['住所']||""}</div>
-        </div>
-        <div class="right">
-          <div class="last-visit">${s.visits?.[0]?.date||""}</div>
-          <div class="ticket">${s.ticket?"切符入手済":""}</div>
-        </div>
-      </div>
-    `);
+filtered.forEach(r=>{
+  const s = JSON.parse(localStorage.getItem(`michinoeki_${r.ID}`)||"{}");
+
+  const div = document.createElement("div");
+  div.className = "row";
+  div.innerHTML = `
+    <div class="left">
+      <div class="name">${r['名称']}</div>
+      <div class="address">${r['住所']||""}</div>
+    </div>
+    <div class="right">
+      <div class="last-visit">${s.visits?.[0]?.date||""}</div>
+      <div class="ticket">${s.ticket?"切符購入済":""}</div>
+    </div>
+  `;
+
+  // ★ これが抜けていた
+  div.querySelector(".name").addEventListener("click", () => {
+    openDetail(r);
   });
+
+  out.appendChild(div);
+});
 
   document.getElementById("resultCount").textContent=`${filtered.length}件`;
   updateStats();
