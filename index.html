@@ -29,17 +29,20 @@ header{
 /* ===== 検索 ===== */
 .search-wrapper{
   position:relative;
-  width:66%;
-  max-width:700px;
-  margin:0 auto; /* ← 中央寄せを明示 */
+  width:100%;        /* ← 下段と同じ基準 */
+  max-width:700px;   /* ← 広すぎ防止 */
+  align-self:center; /* ← 見た目中央に */
+  margin-bottom:6px;
 }
 input[type="text"]{
   width:100%;
-  padding:8px 36px 8px 10px;
+  padding:6px 36px 6px 10px; /* ← 上下をボタンと同じ */
+  line-height:16px;         /* ← 高さ計算を固定 */
   border:1px solid #81c784;
   border-radius:8px;
   background:#e8f5e9;
   font-size:16px;
+  box-sizing:border-box;
 }
 .clear-btn{
   position:absolute;
