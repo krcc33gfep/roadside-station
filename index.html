@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>道の駅ビューワー（修正版・完全動作版）</title>
+<title>道の駅ビューワー</title>
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -18,9 +18,16 @@ html,body{
   overflow-x:hidden;
 }
 header{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  padding:12px;
+  background:#a5d6a7;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+}
+
+/* ★ 共通基準（検索＋下段を揃える） */
+.header-inner{
+  width:100%;
+  max-width:720px;
+  margin:0 auto;
 }
 
 /* ===== 検索 ===== */
@@ -30,12 +37,12 @@ header{
 }
 input[type="text"]{
   width:100%;
-  padding:6px 36px 6px 10px; /* ← 上下をボタンと同じ */
-  line-height:16px;         /* ← 高さ計算を固定 */
+  padding:6px 36px 6px 10px; /* ← ボタンと同じ高さ */
+  line-height:16px;
+  font-size:16px;
   border:1px solid #81c784;
   border-radius:8px;
   background:#e8f5e9;
-  font-size:16px;
   box-sizing:border-box;
 }
 .clear-btn{
@@ -54,10 +61,8 @@ input[type="text"]{
 /* ===== ヘッダ下 ===== */
 .header-bottom{
   margin-top:8px;
-  width:100%;
   display:flex;
   gap:20px;
-  justify-content:center;
   align-items:center;
 }
 .sort-buttons{
@@ -66,12 +71,12 @@ input[type="text"]{
 }
 .sort-buttons button{
   width:60px;
-  padding:6px 12px;
+  padding:6px 12px;       /* ← 検索と同じ高さ */
   font-size:16px;
   border:none;
   border-radius:6px;
   background:#81c784;
-  color:#2e7d32; /* ← 駅名と同じ文字色 */
+  color:#2e7d32;          /* ← 駅名と同じ色 */
   cursor:pointer;
 }
 .sort-buttons button.active{
@@ -83,28 +88,6 @@ input[type="text"]{
   color:#1b5e20;
   white-space:nowrap;
 }
-
-/* ===== CSV ===== */
-.csv-menu{
-  display:none;
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  background:#fff;
-  border:1px solid #81c784;
-  border-radius:8px;
-  box-shadow:0 3px 8px rgba(0,0,0,.25);
-  overflow:hidden;
-  z-index:10;
-}
-.csv-menu button{
-  width:100%;
-  padding:10px 16px;
-  border:none;
-  background:#fff;
-  cursor:pointer;
-}
-.csv-menu button:hover{background:#c8e6c9}
 
 /* ===== リスト ===== */
 .container{padding:10px}
@@ -169,12 +152,6 @@ input[type="text"]{
 }
 #addVisitBtn{background:#4caf50}
 #closeModal2{background:#d32f2f}
-.header-inner{
-  width:100%;
-  max-width:700px;   /* ← 下段と検索を同じ幅に */
-  margin:0 auto;     /* ← 画面中央基準 */
-}
-
 </style>
 </head>
 
@@ -182,14 +159,20 @@ input[type="text"]{
 
 <header>
   <div class="header-inner">
+
     <div class="search-wrapper">
       <input id="search" placeholder="検索（名称・住所）...">
       <button id="clearBtn" class="clear-btn">&times;</button>
     </div>
 
     <div class="header-bottom">
-      ...
+      <div class="sort-buttons">
+        <button id="sortVisitDate">訪問</button>
+        <button id="filterTicket">切符</button>
+      </div>
+      <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
     </div>
+
   </div>
 </header>
 
@@ -209,30 +192,23 @@ input[type="text"]{
   </div>
 </div>
 
-<input type="file" id="csvFile" hidden>
-
 <script>
 const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
 const $=id=>document.getElementById(id);
-const emptyData={visits:[],ticket:false};
+const empty={visits:[],ticket:false};
+let rows=[],currentId=null,searchWord="",onlyTicket=false,sortVisit=false;
 
-let rows=[],currentId=null;
-let searchWord="",onlyTicket=false,sortVisit=false;
+const getSaved=id=>JSON.parse(localStorage.getItem("michinoeki_"+id)||JSON.stringify(empty));
+const setSaved=(id,d)=>localStorage.setItem("michinoeki_"+id,JSON.stringify(d));
 
-/* ===== 共通 ===== */
-const getSaved=id=>JSON.parse(localStorage.getItem("michinoeki_"+id)||JSON.stringify(emptyData));
-const setSaved=(id,data)=>localStorage.setItem("michinoeki_"+id,JSON.stringify(data));
-
-/* ===== CSV ===== */
 fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
     rows=r.data;render();
   }});
 });
 
-/* ===== 検索 ===== */
 $("search").oninput=e=>{
-  searchWord=e.target.value.trim().toLowerCase();
+  searchWord=e.target.value.toLowerCase();
   $("clearBtn").style.display=searchWord?"block":"none";
   render();
 };
@@ -243,7 +219,6 @@ $("clearBtn").onclick=()=>{
   render();
 };
 
-/* ===== フィルタ ===== */
 $("filterTicket").onclick=()=>{
   onlyTicket=!onlyTicket;
   $("filterTicket").classList.toggle("active",onlyTicket);
@@ -255,12 +230,11 @@ $("sortVisitDate").onclick=()=>{
   render();
 };
 
-/* ===== 描画 ===== */
 function render(){
   let list=rows.filter(r=>{
     const hit=!searchWord||[r.名称,r.住所].some(v=>(v||"").toLowerCase().includes(searchWord));
-    const saved=getSaved(r.ID);
-    return hit && (!onlyTicket||saved.ticket);
+    const s=getSaved(r.ID);
+    return hit&&(!onlyTicket||s.ticket);
   });
 
   if(sortVisit){
@@ -288,7 +262,6 @@ function render(){
     div.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(div);
   });
-
   updateStats();
 }
 
@@ -304,7 +277,6 @@ function updateStats(){
   $("statsBox").innerHTML=`訪問：${v}<br>切符：${t}`;
 }
 
-/* ===== モーダル ===== */
 function openModal(r){
   currentId=r.ID;
   $("modalName").textContent=r.名称;
@@ -325,8 +297,7 @@ $("addVisitBtn").onclick=()=>{
   const d=$("visitDate").value;
   if(!d)return alert("日付を入力してください");
   const s=getSaved(currentId);
-  s.visits.push({date:d});
-  s.visits.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  s.visits.unshift({date:d});
   setSaved(currentId,s);
   renderVisits(s.visits);
   render();
@@ -354,5 +325,6 @@ function renderVisits(vs){
   });
 }
 </script>
+
 </body>
 </html>
