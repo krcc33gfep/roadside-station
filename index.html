@@ -18,9 +18,6 @@ html,body{
   overflow-x:hidden;
 }
 header{
-  padding:12px;
-  background:#a5d6a7;
-  box-shadow:0 2px 4px rgba(0,0,0,.1);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -29,10 +26,7 @@ header{
 /* ===== 検索 ===== */
 .search-wrapper{
   position:relative;
-  width:100%;        /* ← 下段と同じ基準 */
-  max-width:700px;   /* ← 広すぎ防止 */
-  align-self:center; /* ← 見た目中央に */
-  margin-bottom:6px;
+  width:100%;
 }
 input[type="text"]{
   width:100%;
@@ -175,30 +169,27 @@ input[type="text"]{
 }
 #addVisitBtn{background:#4caf50}
 #closeModal2{background:#d32f2f}
+.header-inner{
+  width:100%;
+  max-width:700px;   /* ← 下段と検索を同じ幅に */
+  margin:0 auto;     /* ← 画面中央基準 */
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="search-wrapper">
-    <input id="search" placeholder="検索（名称・住所）...">
-    <button id="clearBtn" class="clear-btn">&times;</button>
-  </div>
-
-  <div class="header-bottom">
-    <div class="sort-buttons">
-      <button id="sortVisitDate">訪問</button>
-      <button id="filterTicket">切符</button>
-      <div style="position:relative">
-        <button id="csvMainBtn">保存</button>
-        <div class="csv-menu" id="csvMenu">
-          <button id="exportCSVBtn">エクスポート</button>
-          <button id="importCSVBtn">インポート</button>
-        </div>
-      </div>
+  <div class="header-inner">
+    <div class="search-wrapper">
+      <input id="search" placeholder="検索（名称・住所）...">
+      <button id="clearBtn" class="clear-btn">&times;</button>
     </div>
-    <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
+
+    <div class="header-bottom">
+      ...
+    </div>
   </div>
 </header>
 
