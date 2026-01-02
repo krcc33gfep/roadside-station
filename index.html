@@ -246,13 +246,14 @@ input[type="text"]{
 <body>
 
 <header>
-<div class="search-row">
-  <div class="search-wrapper">
-    <input id="search" type="text" placeholder="検索（名称・住所）...">
-    <button id="clearBtn" class="clear-btn">&times;</button>
+  <div class="search-row">
+    <div class="search-wrapper">
+      <input id="search" type="text" placeholder="検索（名称・住所）...">
+      <button id="clearBtn" class="clear-btn">&times;</button>
+    </div>
+    <div class="search-count" id="searchCount"></div>
   </div>
-  <div class="search-count" id="searchCount"></div>
-  </div>
+
   <div class="header-bottom">
     <div class="sort-buttons">
       <button id="sortVisitDate">訪問</button>
@@ -267,6 +268,7 @@ input[type="text"]{
     <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
   </div>
 </header>
+
 
 <div class="container" id="output"></div>
 
@@ -316,14 +318,40 @@ $("csvMainBtn").onclick=e=>{
 document.onclick=()=>{$("csvMenu").style.display="none"};
 
 function render(){
-  let list=rows.filter(r=>{
-    $("searchCount").textContent = `検索結果：${list.length}件`;
-    const hit=!searchWord||searchWord.split(/\s+/).some(w=>
-      (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
+  let list = rows.filter(r => {
+    const hit = !searchWord || searchWord.split(/\s+/).some(w =>
+      (r["名称"] || "").toLowerCase().includes(w) ||
+      (r["住所"] || "").toLowerCase().includes(w)
     );
-    const s=storage(r["ID"]);
     return hit;
   });
+
+  // 検索結果件数（安全に更新）
+  const sc = $("searchCount");
+  if (sc) {
+    sc.textContent = `検索結果：${list.length}件`;
+  }
+
+  $("output").innerHTML = "";
+  list.forEach(r => {
+    const s = storage(r.ID);
+    const d = document.createElement("div");
+    d.className = "row";
+    d.innerHTML = `
+      <div class="name">${r["名称"]}</div>
+      <div class="address">${r["住所"]||""}</div>
+      <div class="last-visit">
+        ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
+      </div>
+      <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
+    `;
+    d.querySelector(".name").onclick = () => openModal(r);
+    $("output").appendChild(d);
+  });
+
+  updateStats();
+}
+
 
   if(sortVisit){
     list.sort((a,b)=>{
