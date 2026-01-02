@@ -239,7 +239,6 @@ input[type="text"]{
   <div class="header-bottom">
     <div class="sort-buttons">
       <button id="sortVisitDate">訪問</button>
-      <button id="filterTicket">切符</button>
       <div style="position:relative">
         <button id="csvMainBtn">保存</button>
         <div class="csv-menu" id="csvMenu">
@@ -273,7 +272,7 @@ input[type="text"]{
 
 <script>
 const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
-let rows=[],currentId=null,searchWord="",onlyTicket=false,sortVisit=false;
+let rows=[],currentId=null,searchWord="",sortVisit=false;
 
 const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
@@ -291,7 +290,6 @@ $("search").oninput=()=>{
 };
 $("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
 
-$("filterTicket").onclick=()=>{onlyTicket=!onlyTicket;event.target.classList.toggle("active");render()};
 $("sortVisitDate").onclick=()=>{sortVisit=!sortVisit;event.target.classList.toggle("active");render()};
 
 $("csvMainBtn").onclick=e=>{
@@ -306,7 +304,7 @@ function render(){
       (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
     );
     const s=storage(r["ID"]);
-    return hit&&(onlyTicket?!s.ticket:false||true);
+    return hit;
   });
 
   if(sortVisit){
