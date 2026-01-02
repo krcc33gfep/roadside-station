@@ -205,6 +205,19 @@ input[type="text"]{
 .station-right{
   text-align: right;
 }
+.search-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  justify-content:center;
+}
+
+.search-count{
+  font-size:13px;
+  color:#1b5e20;
+  white-space:nowrap;
+}
 
 
 /* 切符購入・訪問履歴の見出し行 */
@@ -236,6 +249,7 @@ input[type="text"]{
     <input id="search" type="text" placeholder="検索（名称・住所）...">
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
+  <div class="search-count" id="searchCount"></div>
 
   <div class="header-bottom">
     <div class="sort-buttons">
@@ -301,6 +315,7 @@ document.onclick=()=>{$("csvMenu").style.display="none"};
 
 function render(){
   let list=rows.filter(r=>{
+    $("searchCount").textContent = `検索結果：${list.length}件`;
     const hit=!searchWord||searchWord.split(/\s+/).some(w=>
       (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
     );
