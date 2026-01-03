@@ -33,6 +33,220 @@ header{
   width:95%;
   max-width:500px;
 }
+input[type="text"]{
+  flex:1;
+  background:#e8f5e9;
+  border:1px solid #81c784;
+  border-radius:8px;
+  padding:8px 36px 8px 10px;
+  font-size:16px;
+  box-sizing:border-box;
+}
+.clear-btn{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  font-size:20px;
+  color:#388e3c;
+  cursor:pointer;
+  display:none;
+}
+.search-count{
+  font-size:15px;
+  color:#1b5e20;
+  white-space:nowrap;
+}
+
+/* ===== ヘッダー下段 ===== */
+.header-bottom{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  width:100%;
+  margin-top:8px;
+}
+.sort-buttons{
+  display:flex;
+  gap:8px;
+}
+.sort-buttons button{
+  background:#81c784;
+  border:none;
+  border-radius:6px;
+  padding:6px 30px;
+  font-size:16px;
+  cursor:pointer;
+}
+.sort-buttons button.active{
+  background:#4caf50;
+  color:#fff;
+}
+.stats-box{
+  font-size:15px;
+  color:#1b5e20;
+  white-space:nowrap;
+  line-height:1.0;
+}
+
+.container{padding:10px}
+.row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  grid-template-rows:auto auto;
+  column-gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #c8e6c9;
+  align-items:end;
+}
+.name{
+  grid-column:1;
+  grid-row:1;
+  font-size:1.3em;
+  font-weight:600;
+  color:#2e7d32;
+  cursor:pointer;
+}
+.address{
+  grid-column:1;
+  grid-row:2;
+  font-size:.9em;
+  color:#555;
+}
+.last-visit{
+  grid-column:2;
+  grid-row:1;
+  font-size:.9em;
+  color:#1b5e20;
+  text-align:right;
+}
+.ticket{
+  grid-column:2;
+  grid-row:2;
+  font-size:.85em;
+  color:#388e3c;
+  text-align:right;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="search-wrapper">
+    <input id="search" type="text" placeholder="検索（名称・住所）...">
+    <span class="search-count" id="searchCount">表示：0件</span>
+    <button id="clearBtn" class="clear-btn">&times;</button>
+  </div>
+
+  <div class="header-bottom">
+    <div class="sort-buttons">
+      <button id="sortVisitDate">訪問</button>
+    </div>
+    <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
+  </div>
+</header>
+
+<div class="container" id="output"></div>
+
+<script>
+const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
+let rows=[],searchWord="",sortVisit=false;
+
+const $=id=>document.getElementById(id);
+
+fetch(csvUrl).then(r=>r.text()).then(t=>{
+  Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
+    rows=r.data;
+    render();
+  }});
+});
+
+$("search").oninput=()=>{
+  searchWord=$("search").value.toLowerCase().trim();
+  $("clearBtn").style.display=searchWord?"block":"none";
+  render();
+};
+$("clearBtn").onclick=()=>{
+  searchWord="";
+  $("search").value="";
+  render();
+};
+
+$("sortVisitDate").onclick=e=>{
+  sortVisit=!sortVisit;
+  e.target.classList.toggle("active");
+  render();
+};
+
+function render(){
+  let list=rows.filter(r=>{
+    return !searchWord || searchWord.split(/\s+/).some(w=>
+      (r["名称"]||"").toLowerCase().includes(w) ||
+      (r["住所"]||"").toLowerCase().includes(w)
+    );
+  });
+
+  if(sortVisit){
+    list.sort((a,b)=>a["名称"].localeCompare(b["名称"],"ja"));
+  }
+
+  $("output").innerHTML="";
+  list.forEach(r=>{
+    const d=document.createElement("div");
+    d.className="row";
+    d.innerHTML=`
+      <div class="name">${r["名称"]}</div>
+      <div class="address">${r["住所"]||""}</div>
+    `;
+    $("output").appendChild(d);
+  });
+
+  /* ★ 表示件数（検索・ソート後の実表示数） */
+  $("searchCount").textContent = `表示：${list.length}件`;
+}
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>道の駅ビューワー（修正版・完全動作版）</title>
+
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+html,body{
+  margin:0;
+  background:#f0fff4;
+  color:#033;
+  font-family:"M PLUS 1 Code",monospace;
+  overflow-x:hidden;
+}
+header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:12px;
+  background:#a5d6a7;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+}
+
+/* ===== 検索行 ===== */
+.search-wrapper{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:95%;
+  max-width:500px;
+}
 
 input[type="text"]{
   flex:1;
