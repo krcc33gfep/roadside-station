@@ -285,17 +285,27 @@ document.onclick=()=>{$("csvMenu").style.display="none"};
 
 function render(){
   let list=rows.filter(r=>{
-    const hit=!searchWord||searchWord.split(/\s+/).some(w=>
-      (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
-    );
-    const s=storage(r["ID"]);
-    return hit;
+    const hit =
+      !searchWord || searchWord.split(/\s+/).some(w =>
+        (r["名称"]||"").toLowerCase().includes(w) ||
+        (r["住所"]||"").toLowerCase().includes(w)
+      );
+
+    if(!hit) return false;
+
+    if(sortVisit){
+      const s = storage(r.ID);
+      return s.visits.length > 0;
+    }
+
+    return true;
   });
 
   if(sortVisit){
-    list.sort((a,b)=>{
-      return new Date(storage(b.ID).visits[0]?.date||0)-new Date(storage(a.ID).visits[0]?.date||0);
-    });
+    list.sort((a,b)=>
+      new Date(storage(b.ID).visits[0]?.date||0) -
+      new Date(storage(a.ID).visits[0]?.date||0)
+    );
   }
 
   $("output").innerHTML="";
