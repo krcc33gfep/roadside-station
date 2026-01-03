@@ -27,12 +27,14 @@ header{
 
 /* ===== 検索行 ===== */
 .search-wrapper{
+  position:relative;
   display:flex;
   align-items:center;
   gap:8px;
   width:95%;
   max-width:500px;
 }
+
 
 input[type="text"]{
   flex:1;
@@ -319,13 +321,13 @@ d.innerHTML = `
   <div class="last-visit">
     ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
   </div>
-  <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
+  <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
 `;
 
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
-  $("listCount").textContent = `表示件数：${list.length}件`;
+  $("listCount").textContent = `：${list.length}件`;
   updateStats();
 }
 
