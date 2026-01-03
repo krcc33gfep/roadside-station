@@ -34,6 +34,10 @@ header{
   width:95%;
   max-width:500px;
 }
+.search-input-wrapper{
+  position:relative;
+  flex:1;
+}
 
 
 input[type="text"]{
@@ -217,11 +221,13 @@ input[type="text"]{
 <body>
 
 <header>
-  <div class="search-wrapper">
+<div class="search-wrapper">
+  <div class="search-input-wrapper">
     <input id="search" type="text" placeholder="検索（名称・住所）...">
-    <span class="search-count" id="listCount">0件</span>
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
+  <span class="search-count" id="listCount">0件</span>
+</div>
 
   <div class="header-bottom">
     <div class="sort-buttons">
