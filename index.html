@@ -267,14 +267,17 @@ header{
 
 <script>
 const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
-let rows=[],currentId=null,searchWord="",sortVisit=false;
+let rows=[],currentId=null,searchWord="",sortVisit=true;
 
 const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
 
 fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
-    rows=r.data;render();
+    rows=r.data;
+    $("sortVisitDate").classList.add("active");
+    $("sortVisitDate").textContent = "全部";
+    render();
   }});
 });
 
@@ -285,7 +288,19 @@ $("search").oninput=()=>{
 };
 $("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
 
-$("sortVisitDate").onclick=()=>{sortVisit=!sortVisit;event.target.classList.toggle("active");render()};
+$("sortVisitDate").onclick = (e) => {
+  sortVisit = !sortVisit;
+
+  if (sortVisit) {
+    e.target.classList.add("active");
+    e.target.textContent = "全部";
+  } else {
+    e.target.classList.remove("active");
+    e.target.textContent = "訪問";
+  }
+
+  render();
+};
 
 $("csvMainBtn").onclick=e=>{
   e.stopPropagation();
