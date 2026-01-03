@@ -217,7 +217,7 @@ input[type="text"]{
 <header>
   <div class="search-wrapper">
     <input id="search" type="text" placeholder="検索（名称・住所）...">
-    <span class="search-count">1000件</span>
+    <span class="search-count" id="listCount">0件</span>
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
 
@@ -315,6 +315,7 @@ d.innerHTML = `
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
+  $("listCount").textContent = `表示件数：${list.length}件`;
   updateStats();
 }
 
