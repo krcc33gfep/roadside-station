@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,12 +25,23 @@ header{
   background:#a5d6a7;
   box-shadow:0 2px 4px rgba(0,0,0,.1);
 }
+
+/* ===== 検索行 ===== */
 .search-wrapper{
-  position:relative;
-  width:95%;
-  max-width:500px;
+  display:flex;
+  align-items:center;
+  width:70vw;      /* 画面の70% */
+  max-width:900px; /* 広がりすぎ防止（好みで調整） */
 }
-input[type="text"]{
+
+.search-input-wrapper{
+  position:relative;
+  flex:0 0 70%;
+}
+
+
+  input[type="text"]{
+  flex:1;
   width:100%;
   background:#e8f5e9;
   border:1px solid #81c784;
@@ -38,6 +50,7 @@ input[type="text"]{
   font-size:16px;
   box-sizing:border-box;
 }
+
 .clear-btn{
   position:absolute;
   right:8px;
@@ -50,6 +63,17 @@ input[type="text"]{
   cursor:pointer;
   display:none;
 }
+
+/* ★ 件数表示（今回追加） */
+.search-count{
+  flex:0 0 30%;
+  text-align:right;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+
+/* ===== ヘッダー下段 ===== */
 .header-bottom{
   display:flex;
   justify-content:center;
@@ -66,7 +90,7 @@ input[type="text"]{
   background:#81c784;
   border:none;
   border-radius:6px;
-  padding:6px 12px;
+  padding:6px 30px;
   font-size:16px;
   cursor:pointer;
 }
@@ -75,10 +99,12 @@ input[type="text"]{
   color:#fff;
 }
 .stats-box{
-  font-size:13px;
+  font-size:15px;
   color:#1b5e20;
   white-space:nowrap;
+  line-height:1.0;
 }
+
 .csv-menu{
   display:none;
   position:absolute;
@@ -89,7 +115,7 @@ input[type="text"]{
   border-radius:8px;
   box-shadow:0 3px 8px rgba(0,0,0,.25);
   z-index:10;
-  min-width: 200%;
+  min-width:200%;
 }
 .csv-menu button{
   width:100%;
@@ -103,45 +129,42 @@ input[type="text"]{
 .container{padding:10px}
 .row{
   display:grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  column-gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid #c8e6c9;
-  align-items: end;
+  grid-template-columns:1fr auto;
+  grid-template-rows:auto auto;
+  column-gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #c8e6c9;
+  align-items:end;
 }
-
 .name{
-  grid-column: 1;
-  grid-row: 1;
+  grid-column:1;
+  grid-row:1;
   font-size:1.3em;
   font-weight:600;
   color:#2e7d32;
   cursor:pointer;
 }
-
 .address{
-  grid-column: 1;
-  grid-row: 2;
+  grid-column:1;
+  grid-row:2;
   font-size:.9em;
   color:#555;
 }
-
 .last-visit{
-  grid-column: 2;
-  grid-row: 1;
+  grid-column:2;
+  grid-row:1;
   font-size:.9em;
   color:#1b5e20;
   text-align:right;
 }
-
 .ticket{
-  grid-column: 2;
-  grid-row: 2;
+  grid-column:2;
+  grid-row:2;
   font-size:.85em;
   color:#388e3c;
   text-align:right;
 }
+
 /* modal */
 .modal{
   display:none;
@@ -192,37 +215,7 @@ input[type="text"]{
   border-radius:6px;
   color:#fff;
 }
-.station-right{
-  text-align: right;
-  margin-left: auto;
-}
-.station-row{
-  display: grid;
-  grid-template-columns: 1fr 140px;
-}
-
-.station-right{
-  text-align: right;
-}
-
-
-/* 切符購入・訪問履歴の見出し行 */
-.modal-content > div:not(#visitList):not(.modal-buttons){
-  font-size: 1.2em;
-}
-.modal-content label{
-  display: block;
-  margin: 2px 0 2px;   /* ← 上下を詰める（好みで微調整OK） */
-}
-#visitDate{
-  width: 180px;        /* ← 横幅を広げる（お好みで調整） */
-  font-size: 20px;     /* ← 文字サイズを大きく */
-  padding: 2px 4px;    /* ← タップしやすく */
-}
-#modalName{
-  color:#2e7d32;   /* ← 一覧の .name と同じ色 */
-}
-
+#modalName{color:#2e7d32}
 #addVisitBtn{background:#4caf50}
 #closeModal2{background:#d32f2f}
 </style>
@@ -231,15 +224,17 @@ input[type="text"]{
 <body>
 
 <header>
-  <div class="search-wrapper">
+<div class="search-wrapper">
+  <div class="search-input-wrapper">
     <input id="search" type="text" placeholder="検索（名称・住所）...">
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
+  <span class="search-count" id="listCount">0件</span>
+</div>
 
   <div class="header-bottom">
     <div class="sort-buttons">
       <button id="sortVisitDate">訪問</button>
-      <button id="filterTicket">切符</button>
       <div style="position:relative">
         <button id="csvMainBtn">保存</button>
         <div class="csv-menu" id="csvMenu">
@@ -273,7 +268,7 @@ input[type="text"]{
 
 <script>
 const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
-let rows=[],currentId=null,searchWord="",onlyTicket=false,sortVisit=false;
+let rows=[],currentId=null,searchWord="",sortVisit=false;
 
 const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
@@ -291,7 +286,6 @@ $("search").oninput=()=>{
 };
 $("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
 
-$("filterTicket").onclick=()=>{onlyTicket=!onlyTicket;event.target.classList.toggle("active");render()};
 $("sortVisitDate").onclick=()=>{sortVisit=!sortVisit;event.target.classList.toggle("active");render()};
 
 $("csvMainBtn").onclick=e=>{
@@ -302,17 +296,27 @@ document.onclick=()=>{$("csvMenu").style.display="none"};
 
 function render(){
   let list=rows.filter(r=>{
-    const hit=!searchWord||searchWord.split(/\s+/).some(w=>
-      (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
-    );
-    const s=storage(r["ID"]);
-    return hit&&(onlyTicket?!s.ticket:false||true);
+    const hit =
+      !searchWord || searchWord.split(/\s+/).some(w =>
+        (r["名称"]||"").toLowerCase().includes(w) ||
+        (r["住所"]||"").toLowerCase().includes(w)
+      );
+
+    if(!hit) return false;
+
+    if(sortVisit){
+      const s = storage(r.ID);
+      return s.visits.length > 0;
+    }
+
+    return true;
   });
 
   if(sortVisit){
-    list.sort((a,b)=>{
-      return new Date(storage(b.ID).visits[0]?.date||0)-new Date(storage(a.ID).visits[0]?.date||0);
-    });
+    list.sort((a,b)=>
+      new Date(storage(b.ID).visits[0]?.date||0) -
+      new Date(storage(a.ID).visits[0]?.date||0)
+    );
   }
 
   $("output").innerHTML="";
@@ -326,12 +330,13 @@ d.innerHTML = `
   <div class="last-visit">
     ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
   </div>
-  <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
+  <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
 `;
 
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
+  $("listCount").textContent = `：${list.length}件`;
   updateStats();
 }
 
