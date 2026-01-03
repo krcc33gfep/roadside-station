@@ -30,6 +30,7 @@ header{
   display:flex;
   width:90vw;
   max-width:1200px;
+  box-sizing:border-box;
 }
 
 /* ===== 左カラム ===== */
@@ -37,21 +38,21 @@ header{
   width:70%;
   display:flex;
   flex-direction:column;
-  align-items:stretch;
   gap:10px;
+  min-width:0; /* ★ 追加：flex縮小許可 */
 }
 
 /* 検索 */
 .search-wrapper{
   width:100%;
-  max-width:none;      /* ← はみ出し防止の要 */
-  display:flex;        /* ← これは残す */
-  align-items:center;  /* ← これも残す */
+  display:flex;
+  align-items:center;
   box-sizing:border-box;
+  min-width:0; /* ★ 追加 */
 }
 
 .search-input-wrapper{
-  position:relative;   /* ← ×ボタン用なので必須 */
+  position:relative;
   width:100%;
 }
 
@@ -62,6 +63,7 @@ input[type="text"]{
   border-radius:8px;
   padding:8px 36px 8px 10px;
   font-size:16px;
+  box-sizing:border-box;
 }
 
 .clear-btn{
@@ -104,11 +106,12 @@ input[type="text"]{
   display:flex;
   flex-direction:column;
   justify-content:center;
-  align-items:flex-start; /* 左寄せ */
+  align-items:flex-start;
   font-size:15px;
   color:#1b5e20;
   line-height:1.4;
   padding-left:16px;
+  box-sizing:border-box;
 }
 
 /* ===== CSVメニュー ===== */
@@ -179,8 +182,10 @@ input[type="text"]{
   color:#388e3c;
   text-align:right;
 }
+
+/* ===== modal ===== */
 .modal{
-  display:none !important;
+  display:none;          /* ★ !important 削除 */
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.4);
@@ -188,7 +193,6 @@ input[type="text"]{
   align-items:center;
   z-index:9999;
 }
-
 </style>
 </head>
 
@@ -196,8 +200,6 @@ input[type="text"]{
 
 <header>
   <div class="header-inner">
-
-    <!-- 左 -->
     <div class="header-left">
       <div class="search-wrapper">
         <div class="search-input-wrapper">
@@ -218,17 +220,16 @@ input[type="text"]{
       </div>
     </div>
 
-    <!-- 右 -->
     <div class="header-right" id="statsBox">
       検索結果：0件<br>
       訪問：0<br>
       切符：0
     </div>
-
   </div>
-</header><div class="container" id="output"></div>
+</header>
 
-<!-- modal -->
+<div class="container" id="output"></div>
+
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
