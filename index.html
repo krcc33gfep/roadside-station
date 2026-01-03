@@ -37,7 +37,7 @@ header{
   width:70%;
   display:flex;
   flex-direction:column;
-  align-items:flex-end; /* 右寄せ */
+  align-items:stretch;
   gap:10px;
 }
 
@@ -47,6 +47,7 @@ header{
   max-width:none;      /* ← はみ出し防止の要 */
   display:flex;        /* ← これは残す */
   align-items:center;  /* ← これも残す */
+  box-sizing:border-box;
 }
 
 .search-input-wrapper{
@@ -176,6 +177,15 @@ input[type="text"]{
   font-size:.85em;
   color:#388e3c;
   text-align:right;
+}
+.modal{
+  display:none !important;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
 }
 
 </style>
