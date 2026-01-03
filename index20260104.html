@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -29,13 +30,19 @@ header{
 .search-wrapper{
   display:flex;
   align-items:center;
-  gap:8px;
-  width:95%;
-  max-width:500px;
+  width:70vw;      /* 画面の70% */
+  max-width:900px; /* 広がりすぎ防止（好みで調整） */
 }
 
-input[type="text"]{
+.search-input-wrapper{
+  position:relative;
+  flex:0 0 70%;
+}
+
+
+  input[type="text"]{
   flex:1;
+  width:100%;
   background:#e8f5e9;
   border:1px solid #81c784;
   border-radius:8px;
@@ -59,10 +66,12 @@ input[type="text"]{
 
 /* ★ 件数表示（今回追加） */
 .search-count{
-  font-size:15px;          /* stats-box と同じ */
-  color:#1b5e20;
+  flex:0 0 30%;
+  text-align:right;
+  font-size:18px;
   white-space:nowrap;
 }
+
 
 /* ===== ヘッダー下段 ===== */
 .header-bottom{
@@ -215,11 +224,13 @@ input[type="text"]{
 <body>
 
 <header>
-  <div class="search-wrapper">
+<div class="search-wrapper">
+  <div class="search-input-wrapper">
     <input id="search" type="text" placeholder="検索（名称・住所）...">
-    <span class="search-count">1000件</span>
     <button id="clearBtn" class="clear-btn">&times;</button>
   </div>
+  <span class="search-count" id="listCount">0件</span>
+</div>
 
   <div class="header-bottom">
     <div class="sort-buttons">
@@ -257,14 +268,17 @@ input[type="text"]{
 
 <script>
 const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
-let rows=[],currentId=null,searchWord="",sortVisit=false;
+let rows=[],currentId=null,searchWord="",sortVisit=true;
 
 const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
 
 fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
-    rows=r.data;render();
+    rows=r.data;
+    $("sortVisitDate").classList.remove("active");
+    $("sortVisitDate").textContent = "全部";
+    render();
   }});
 });
 
@@ -275,8 +289,21 @@ $("search").oninput=()=>{
 };
 $("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
 
-$("sortVisitDate").onclick=()=>{sortVisit=!sortVisit;event.target.classList.toggle("active");render()};
+$("sortVisitDate").onclick = (e) => {
+  sortVisit = !sortVisit;
 
+  if (sortVisit) {
+    // 訪問済み表示中 → active OFF
+    e.target.classList.remove("active");
+    e.target.textContent = "全部";
+  } else {
+    // 全部表示中 → active ON
+    e.target.classList.add("active");
+    e.target.textContent = "訪問";
+  }
+
+  render();
+};
 $("csvMainBtn").onclick=e=>{
   e.stopPropagation();
   $("csvMenu").style.display=$("csvMenu").style.display==="block"?"none":"block";
@@ -285,17 +312,27 @@ document.onclick=()=>{$("csvMenu").style.display="none"};
 
 function render(){
   let list=rows.filter(r=>{
-    const hit=!searchWord||searchWord.split(/\s+/).some(w=>
-      (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
-    );
-    const s=storage(r["ID"]);
-    return hit;
+    const hit =
+      !searchWord || searchWord.split(/\s+/).some(w =>
+        (r["名称"]||"").toLowerCase().includes(w) ||
+        (r["住所"]||"").toLowerCase().includes(w)
+      );
+
+    if(!hit) return false;
+
+    if(sortVisit){
+      const s = storage(r.ID);
+      return s.visits.length > 0;
+    }
+
+    return true;
   });
 
   if(sortVisit){
-    list.sort((a,b)=>{
-      return new Date(storage(b.ID).visits[0]?.date||0)-new Date(storage(a.ID).visits[0]?.date||0);
-    });
+    list.sort((a,b)=>
+      new Date(storage(b.ID).visits[0]?.date||0) -
+      new Date(storage(a.ID).visits[0]?.date||0)
+    );
   }
 
   $("output").innerHTML="";
@@ -309,12 +346,13 @@ d.innerHTML = `
   <div class="last-visit">
     ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
   </div>
-  <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
+  <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
 `;
 
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
+  $("listCount").textContent = `：${list.length}件`;
   updateStats();
 }
 
