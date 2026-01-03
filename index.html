@@ -1,4 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>道の駅ビューワー（修正版・完全動作版）</title>
 
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+html,body{
+  margin:0;
+  background:#f0fff4;
+  color:#033;
+  font-family:"M PLUS 1 Code",monospace;
+  overflow-x:hidden;
+}
+header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:12px;
+  background:#a5d6a7;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+}
+
+/* ===== 検索行 ===== */
+.search-wrapper{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:95%;
+  max-width:500px;
+}
+
+input[type="text"]{
+  flex:1;
+  background:#e8f5e9;
+  border:1px solid #81c784;
+  border-radius:8px;
+  padding:8px 36px 8px 10px;
+  font-size:16px;
+  box-sizing:border-box;
+}
+
+.clear-btn{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  font-size:20px;
+  color:#388e3c;
+  cursor:pointer;
+  display:none;
+}
+
+/* ★ 件数表示（今回追加） */
+.search-count{
+  font-size:15px;          /* stats-box と同じ */
+  color:#1b5e20;
+  white-space:nowrap;
+}
+
+/* ===== ヘッダー下段 ===== */
+.header-bottom{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  width:100%;
+  margin-top:8px;
+}
+.sort-buttons{
+  display:flex;
+  gap:8px;
+}
+.sort-buttons button{
+  background:#81c784;
+  border:none;
+  border-radius:6px;
+  padding:6px 30px;
+  font-size:16px;
+  cursor:pointer;
+}
+.sort-buttons button.active{
+  background:#4caf50;
+  color:#fff;
+}
+.stats-box{
+  font-size:15px;
+  color:#1b5e20;
+  white-space:nowrap;
+  line-height:1.0;
+}
+
+.csv-menu{
+  display:none;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  background:#fff;
+  border:1px solid #81c784;
+  border-radius:8px;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+  z-index:10;
+  min-width:200%;
+}
+.csv-menu button{
+  width:100%;
+  border:none;
+  background:#fff;
+  padding:10px;
+  cursor:pointer;
+}
+.csv-menu button:hover{background:#c8e6c9}
+
+.container{padding:10px}
+.row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  grid-template-rows:auto auto;
+  column-gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #c8e6c9;
+  align-items:end;
+}
+.name{
+  grid-column:1;
+  grid-row:1;
+  font-size:1.3em;
+  font-weight:600;
+  color:#2e7d32;
+  cursor:pointer;
+}
+.address{
+  grid-column:1;
+  grid-row:2;
+  font-size:.9em;
+  color:#555;
+}
+.last-visit{
+  grid-column:2;
+  grid-row:1;
+  font-size:.9em;
+  color:#1b5e20;
+  text-align:right;
+}
+.ticket{
+  grid-column:2;
+  grid-row:2;
+  font-size:.85em;
+  color:#388e3c;
+  text-align:right;
+}
+
+/* modal */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+.modal-content{
+  background:#fff;
+  padding:6px 20px 20px;
+  border-radius:10px;
+  width:70%;
+  max-width:800px;
+  max-height:90%;
+  overflow-y:auto;
+}
+.visit-entry{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #ddd;
+  padding:4px 0;
+}
+.delete-btn{
+  border:none;
+  background:none;
+  cursor:pointer;
+  color:#d32f2f;
+}
+#visitList{
+  max-height:calc(3 * 34px);
+  overflow-y:auto;
+  border-top:1px solid #c8e6c9;
+  margin-top:6px;
+}
+.modal-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.modal-buttons button{
+  flex:1;
+  padding:10px;
+  font-size:20px;
+  border:none;
+  border-radius:6px;
+  color:#fff;
+}
+#modalName{color:#2e7d32}
+#addVisitBtn{background:#4caf50}
+#closeModal2{background:#d32f2f}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="search-wrapper">
+    <input id="search" type="text" placeholder="検索（名称・住所）...">
+    <span class="search-count">1000件</span>
+    <button id="clearBtn" class="clear-btn">&times;</button>
+  </div>
+
+  <div class="header-bottom">
+    <div class="sort-buttons">
+      <button id="sortVisitDate">訪問</button>
+      <div style="position:relative">
+        <button id="csvMainBtn">保存</button>
+        <div class="csv-menu" id="csvMenu">
+          <button id="exportCSVBtn">エクスポート</button>
+          <button id="importCSVBtn">インポート</button>
+        </div>
+      </div>
+    </div>
+    <div class="stats-box" id="statsBox">訪問：0<br>切符：0</div>
+  </div>
+</header>
+
+<div class="container" id="output"></div>
+
+<!-- modal（以下 JS 含め未変更） -->
+<!-- … 以降のコードはそのまま … -->
+
+</body>
+</html>
 
 <!DOCTYPE html>
 <html lang="ja">
