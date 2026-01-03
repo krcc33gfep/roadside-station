@@ -238,8 +238,215 @@ input[type="text"]{
 
 <div class="container" id="output"></div>
 
-<!-- modal（以下 JS 含め未変更） -->
-<!-- … 以降のコードはそのまま … -->
+<!-- modal -->
+<div class="modal" id="detailModal">
+  <div class="modal-content">
+    <h2 id="modalName"></h2>
+    <div>切符購入：<input type="checkbox" id="ticketCheck"></div>
+    <div>訪問履歴<span id="visitCountLabel"></span></div>
+    <div id="visitList"></div>
+    <label>訪問日：<input type="date" id="visitDate"></label>
+    <div class="modal-buttons">
+      <button id="addVisitBtn">追加</button>
+      <button id="closeModal2">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="csvFile" style="display:none">
+
+<script>
+const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
+let rows=[],currentId=null,searchWord="",sortVisit=false;
+
+const $=id=>document.getElementById(id);
+const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
+
+fetch(csvUrl).then(r=>r.text()).then(t=>{
+  Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
+    rows=r.data;render();
+  }});
+});
+
+$("search").oninput=()=>{
+  searchWord=$("search").value.toLowerCase().trim();
+  $("clearBtn").style.display=searchWord?"block":"none";
+  render();
+};
+$("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
+
+$("sortVisitDate").onclick=()=>{sortVisit=!sortVisit;event.target.classList.toggle("active");render()};
+
+$("csvMainBtn").onclick=e=>{
+  e.stopPropagation();
+  $("csvMenu").style.display=$("csvMenu").style.display==="block"?"none":"block";
+};
+document.onclick=()=>{$("csvMenu").style.display="none"};
+
+function render(){
+  let list=rows.filter(r=>{
+    const hit=!searchWord||searchWord.split(/\s+/).some(w=>
+      (r["名称"]||"").toLowerCase().includes(w)||(r["住所"]||"").toLowerCase().includes(w)
+    );
+    const s=storage(r["ID"]);
+    return hit;
+  });
+
+  if(sortVisit){
+    list.sort((a,b)=>{
+      return new Date(storage(b.ID).visits[0]?.date||0)-new Date(storage(a.ID).visits[0]?.date||0);
+    });
+  }
+
+  $("output").innerHTML="";
+  list.forEach(r=>{
+    const s=storage(r.ID);
+    const d=document.createElement("div");
+    d.className="row";
+d.innerHTML = `
+  <div class="name">${r["名称"]}</div>
+  <div class="address">${r["住所"]||""}</div>
+  <div class="last-visit">
+    ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
+  </div>
+  <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
+`;
+
+    d.querySelector(".name").onclick=()=>openModal(r);
+    $("output").appendChild(d);
+  });
+  updateStats();
+}
+
+function updateStats(){
+  let v=0,t=0;
+  for(let k in localStorage){
+    if(k.startsWith("michinoeki_")){
+      const s=JSON.parse(localStorage[k]);
+      if(s.visits.length)v++;
+      if(s.ticket)t++;
+    }
+  }
+  $("statsBox").innerHTML=`訪問：${v}<br>切符：${t}`;
+}
+
+const modal=$("detailModal");
+$("closeModal2").onclick=()=>modal.style.display="none";
+
+function openModal(r){
+  currentId=r.ID;
+  modal.style.display="flex";
+  $("modalName").textContent=r["名称"];
+  $("visitDate").value=new Date().toISOString().split("T")[0];
+  const s=storage(currentId);
+  $("ticketCheck").checked=s.ticket;
+  renderVisits(s.visits);
+}
+
+$("ticketCheck").onchange=e=>{
+  const s=storage(currentId);
+  s.ticket=e.target.checked;
+  localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(s));
+  render();
+};
+
+$("addVisitBtn").onclick=()=>{
+  const d=$("visitDate").value;
+  if(!d)return alert("訪問日を入力してください");
+  const s=storage(currentId);
+  s.visits.unshift({date:d});
+  localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(s));
+  renderVisits(s.visits);
+  render();
+};
+
+function renderVisits(v){
+  $("visitList").innerHTML="";
+  $("visitCountLabel").textContent=`：${v.length}回`;
+  v.forEach((e,i)=>{
+    const div=document.createElement("div");
+    div.className="visit-entry";
+    const formatted = e.date.replace(/\//g, "-");
+    div.innerHTML = `<div>${formatted}</div>`;
+    const b=document.createElement("button");
+    b.textContent="🗑";
+    b.className="delete-btn";
+    b.onclick=()=>{v.splice(i,1);localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify({ticket:$("ticketCheck").checked,visits:v}));renderVisits(v);render();};
+    div.appendChild(b);
+    $("visitList").appendChild(div);
+  });
+}
+// ===== エクスポート =====
+$("exportCSVBtn").onclick = () => {
+  const data = [];
+
+  for (let k in localStorage) {
+    if (k.startsWith("michinoeki_")) {
+      const id = k.replace("michinoeki_", "");
+      const s = JSON.parse(localStorage[k]);
+      data.push({
+        ID: id,
+        ticket: s.ticket ? 1 : 0,
+        visits: s.visits.map(v => v.date).join("|")
+      });
+    }
+  }
+
+  const csv = Papa.unparse(data);
+
+  const now = new Date();
+  const ts =
+    now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `michinoeki_data_${ts}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+};
+// ===== インポート =====
+$("importCSVBtn").onclick = () => {
+  $("csvFile").click();
+};
+
+$("csvFile").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: r => {
+      r.data.forEach(row => {
+        const visits = row.visits
+          ? row.visits.split("|").map(d => ({ date: d }))
+          : [];
+
+        localStorage.setItem(
+          `michinoeki_${row.ID}`,
+          JSON.stringify({
+            ticket: row.ticket === "1",
+            visits
+          })
+        );
+      });
+      render();
+      alert("インポート完了");
+    }
+  });
+
+  e.target.value = ""; // 同じファイル再選択対策
+};
+
+</script>
 
 </body>
 </html>
