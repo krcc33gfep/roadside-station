@@ -275,7 +275,7 @@ const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits
 fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
     rows=r.data;
-    $("sortVisitDate").classList.add("active");
+    $("sortVisitDate").classList.remove("active");
     $("sortVisitDate").textContent = "全部";
     render();
   }});
@@ -292,12 +292,18 @@ $("sortVisitDate").onclick = (e) => {
   sortVisit = !sortVisit;
 
   if (sortVisit) {
-    e.target.classList.add("active");
+    // 訪問済み表示中 → active OFF
+    e.target.classList.remove("active");
     e.target.textContent = "全部";
   } else {
-    e.target.classList.remove("active");
+    // 全部表示中 → active ON
+    e.target.classList.add("active");
     e.target.textContent = "訪問";
   }
+
+  render();
+};
+
 
   render();
 };
