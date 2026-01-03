@@ -27,18 +27,17 @@ header{
 
 /* ===== 検索行 ===== */
 .search-wrapper{
-  position:relative;
   display:flex;
   align-items:center;
-  gap:8px;
-  width:95%;
-  max-width:500px;
+  width:70vw;      /* 画面の70% */
+  max-width:900px; /* 広がりすぎ防止（好みで調整） */
 }
+
 .search-input-wrapper{
   position:relative;
-  flex:1;
-  max-width:450px;   /* ← ここ */
+  flex:0 0 70%;
 }
+
 
   input[type="text"]{
   flex:1;
@@ -66,10 +65,12 @@ header{
 
 /* ★ 件数表示（今回追加） */
 .search-count{
-  font-size:15px;          /* stats-box と同じ */
-  color:#1b5e20;
+  flex:0 0 30%;
+  text-align:right;
+  font-size:14px;
   white-space:nowrap;
 }
+
 
 /* ===== ヘッダー下段 ===== */
 .header-bottom{
