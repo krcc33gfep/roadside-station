@@ -367,25 +367,38 @@ function render(){
   }
 
   $("output").innerHTML="";
+
+  let visitCount = 0;
+  let ticketCount = 0;
+
   list.forEach(r=>{
     const s=storage(r.ID);
+
+    if (s.visits.length > 0) visitCount++;
+    if (s.ticket) ticketCount++;
+
     const d=document.createElement("div");
     d.className="row";
-d.innerHTML = `
-  <div class="name">${r["名称"]}</div>
-  <div class="address">${r["住所"]||""}</div>
-  <div class="last-visit">
-    ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
-  </div>
-  <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
-`;
+    d.innerHTML = `
+      <div class="name">${r["名称"]}</div>
+      <div class="address">${r["住所"]||""}</div>
+      <div class="last-visit">
+        ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
+      </div>
+      <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
+    `;
 
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
-  $("listCount").textContent = `：${list.length}件`;
-  updateStats();
+
+  // ★ ここで一回だけ更新
+  $("statsBox").innerHTML =
+    `結果：${list.length}<br>` +
+    `訪問：${visitCount}<br>` +
+    `切符：${ticketCount}`;
 }
+
 
 function updateStats(){
   let v=0,t=0;
