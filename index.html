@@ -125,8 +125,12 @@ d.className="row";
 d.innerHTML=`
 <div class="name">${r["名称"]}</div>
 <div class="address">${r["住所"]||""}</div>
-<div class="last-visit">${s.visits[0]?.date||""}</div>
-<div class="ticket">${s.ticketDate||""}</div>`;
+<div class="last-visit">
+  ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
+</div>
+<div class="ticket">
+  ${s.ticketDate ? `切符購入日 ${s.ticketDate}` : ""}
+</div>
 d.querySelector(".name").onclick=()=>openModal(r);
 $("output").appendChild(d);
 });
