@@ -515,38 +515,6 @@ $("exportCSVBtn").onclick = () => {
 
   URL.revokeObjectURL(url);
 };
-  for (let k in localStorage) {
-    if (k.startsWith("michinoeki_")) {
-      const id = k.replace("michinoeki_", "");
-      const s = JSON.parse(localStorage[k]);
-      data.push({
-        ID: id,
-        ticket: s.ticket ? 1 : 0,
-        visits: s.visits.map(v => v.date).join("|")
-      });
-    }
-  }
-
-  const csv = Papa.unparse(data);
-
-  const now = new Date();
-  const ts =
-    now.getFullYear().toString() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `michinoeki_data_${ts}.csv`;
-  a.click();
-
-  URL.revokeObjectURL(url);
-};
 // ===== インポート =====
 $("importCSVBtn").onclick = () => {
   $("csvFile").click();
