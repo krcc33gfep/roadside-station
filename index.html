@@ -460,8 +460,61 @@ function renderVisits(v){
 }
 // ===== エクスポート =====
 $("exportCSVBtn").onclick = () => {
-  const data = [];
+  const records = [];
+  let maxVisits = 0;
 
+  // まず最大訪問回数を調べる
+  for (let k in localStorage) {
+    if (k.startsWith("michinoeki_")) {
+      const s = JSON.parse(localStorage[k]);
+      maxVisits = Math.max(maxVisits, s.visits.length);
+    }
+  }
+
+  // データ作成
+  for (let k in localStorage) {
+    if (!k.startsWith("michinoeki_")) continue;
+
+    const id = k.replace("michinoeki_", "");
+    const s = JSON.parse(localStorage[k]);
+
+    const row = {
+      ID: id,
+      ticket: s.ticket ? 1 : 0
+    };
+
+    s.visits.forEach((v, i) => {
+      row[`visit_${i + 1}`] = v.date;
+    });
+
+    // 足りない列を空で埋める（省略可だがExcel的に親切）
+    for (let i = s.visits.length; i < maxVisits; i++) {
+      row[`visit_${i + 1}`] = "";
+    }
+
+    records.push(row);
+  }
+
+  const csv = Papa.unparse(records);
+
+  const now = new Date();
+  const ts =
+    now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `michinoeki_data_${ts}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+};
   for (let k in localStorage) {
     if (k.startsWith("michinoeki_")) {
       const id = k.replace("michinoeki_", "");
