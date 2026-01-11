@@ -305,14 +305,25 @@ const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
 
 fetch(csvUrl).then(r=>r.text()).then(t=>{
-  Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
-    rows=r.data;
-    $("sortVisitDate").classList.remove("active");
-    $("sortVisitDate").textContent = "全部";
-    render();
-  }});
-});
+  Papa.parse(t,{
+    header:true,
+    skipEmptyLines:true,
+    complete:r=>{
+      rows = r.data.map(row=>{
+        // ★ BOM付きID対策
+        if(row["\ufeffID"]){
+          row.ID = row["\ufeffID"];
+          delete row["\ufeffID"];
+        }
+        return row;
+      });
 
+      $("sortVisitDate").classList.remove("active");
+      $("sortVisitDate").textContent = "全部";
+      render();
+    }
+  });
+});
 $("search").oninput=()=>{
   searchWord=$("search").value.toLowerCase().trim();
   $("clearBtn").style.display=searchWord?"block":"none";
