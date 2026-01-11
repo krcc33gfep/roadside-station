@@ -309,14 +309,14 @@ fetch(csvUrl).then(r=>r.text()).then(t=>{
     header:true,
     skipEmptyLines:true,
     complete:r=>{
-      rows = r.data.map(row=>{
-        // ★ BOM付きID対策
-        if(row["\ufeffID"]){
-          row.ID = row["\ufeffID"];
-          delete row["\ufeffID"];
-        }
-        return row;
-      });
+rows = r.data.map(row=>{
+  if (!row.ID) {
+    const firstKey = Object.keys(row)[0];
+    row.ID = row[firstKey];
+    if (firstKey !== "ID") delete row[firstKey];
+  }
+  return row;
+});
 
       $("sortVisitDate").classList.remove("active");
       $("sortVisitDate").textContent = "全部";
