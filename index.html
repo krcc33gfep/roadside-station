@@ -16,7 +16,6 @@ html,body{
   font-family:"M PLUS 1 Code",monospace;
   overflow-x:hidden;
 }
-
 /* ===== ヘッダー全体 ===== */
 header{
   display:flex;
@@ -25,37 +24,32 @@ header{
   box-shadow:0 2px 4px rgba(0,0,0,.1);
   padding:12px 0;
 }
-
 .header-inner{
   display:flex;
   width:90vw;
   max-width:1200px;
   box-sizing:border-box;
 }
-
 /* ===== 左カラム ===== */
 .header-left{
   width:70%;
   display:flex;
   flex-direction:column;
   gap:10px;
-  min-width:0; /* ★ 追加：flex縮小許可 */
+  min-width:0;
 }
-
 /* 検索 */
 .search-wrapper{
   width:100%;
   display:flex;
   align-items:center;
   box-sizing:border-box;
-  min-width:0; /* ★ 追加 */
+  min-width:0;
 }
-
 .search-input-wrapper{
   position:relative;
   width:100%;
 }
-
 input[type="text"]{
   width:100%;
   background:#e8f5e9;
@@ -65,7 +59,6 @@ input[type="text"]{
   font-size:16px;
   box-sizing:border-box;
 }
-
 .clear-btn{
   position:absolute;
   right:8px;
@@ -78,14 +71,12 @@ input[type="text"]{
   cursor:pointer;
   display:none;
 }
-
 /* ソート・保存 */
 .sort-buttons{
   display:flex;
   gap:8px;
   justify-content:flex-end;
 }
-
 .sort-buttons button{
   background:#81c784;
   border:none;
@@ -94,12 +85,10 @@ input[type="text"]{
   font-size:18px;
   cursor:pointer;
 }
-
 .sort-buttons button.active{
   background:#4caf50;
   color:#fff;
 }
-
 /* ===== 右カラム ===== */
 .header-right{
   width:30%;
@@ -113,7 +102,6 @@ input[type="text"]{
   padding-left:16px;
   box-sizing:border-box;
 }
-
 /* ===== CSVメニュー ===== */
 .csv-menu{
   display:none;
@@ -124,7 +112,6 @@ input[type="text"]{
   box-shadow:0 3px 8px rgba(0,0,0,.25);
   z-index:10;
 }
-
 .csv-menu button{
   width:100%;
   border:none;
@@ -132,15 +119,12 @@ input[type="text"]{
   padding:10px;
   cursor:pointer;
 }
-
 .csv-menu button:hover{background:#c8e6c9}
-
 /* ===== 一覧 ===== */
 .container{
   padding:10px;
   margin-top:10px;
 }
-
 .row{
   display:grid;
   grid-template-columns:1fr auto;
@@ -150,7 +134,6 @@ input[type="text"]{
   border-bottom:1px solid #c8e6c9;
   align-items:end;
 }
-
 .name{
   grid-column:1;
   grid-row:1;
@@ -159,14 +142,12 @@ input[type="text"]{
   color:#2e7d32;
   cursor:pointer;
 }
-
 .address{
   grid-column:1;
   grid-row:2;
   font-size:.9em;
   color:#555;
 }
-
 .last-visit{
   grid-column:2;
   grid-row:1;
@@ -174,7 +155,6 @@ input[type="text"]{
   color:#1b5e20;
   text-align:right;
 }
-
 .ticket{
   grid-column:2;
   grid-row:2;
@@ -182,10 +162,9 @@ input[type="text"]{
   color:#388e3c;
   text-align:right;
 }
-
 /* ===== modal ===== */
 .modal{
-  display:none;          /* ★ !important 削除 */
+  display:none;
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.4);
@@ -233,13 +212,13 @@ input[type="text"]{
   border-radius:6px;
   color:#fff;
 }
-#visitDate {
-  background: #e8f5e9;
-  border: 1px solid #81c784;
-  border-radius: 6px;
-  padding: 2px;
-  font-size: 20px;
-  width: 160px;
+#visitDate{
+  background:#e8f5e9;
+  border:1px solid #81c784;
+  border-radius:6px;
+  padding:2px;
+  font-size:20px;
+  width:160px;
 }
 #modalName{color:#2e7d32}
 #addVisitBtn{background:#4caf50}
@@ -308,22 +287,25 @@ fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{
     header:true,
     skipEmptyLines:true,
+    transformHeader:h=>h.trim().replace(/^\ufeff/,""),
     complete:r=>{
-rows = r.data.map(row=>{
-  if (!row.ID) {
-    const firstKey = Object.keys(row)[0];
-    row.ID = row[firstKey];
-    if (firstKey !== "ID") delete row[firstKey];
-  }
-  return row;
-});
-
+      rows = r.data
+        .filter(row => Object.values(row).some(v => v !== ""))
+        .map(row=>{
+          if(!row.ID){
+            const firstKey = Object.keys(row)[0];
+            row.ID = row[firstKey];
+          }
+          return row;
+        })
+        .filter(r=>r.ID != null && r.ID !== "");
       $("sortVisitDate").classList.remove("active");
-      $("sortVisitDate").textContent = "全部";
+      $("sortVisitDate").textContent="全部";
       render();
     }
   });
 });
+
 $("search").oninput=()=>{
   searchWord=$("search").value.toLowerCase().trim();
   $("clearBtn").style.display=searchWord?"block":"none";
@@ -331,21 +313,18 @@ $("search").oninput=()=>{
 };
 $("clearBtn").onclick=()=>{searchWord="";$("search").value="";render()};
 
-$("sortVisitDate").onclick = (e) => {
-  sortVisit = !sortVisit;
-
-  if (sortVisit) {
-    // 訪問済み表示中 → active OFF
+$("sortVisitDate").onclick=e=>{
+  sortVisit=!sortVisit;
+  if(sortVisit){
     e.target.classList.remove("active");
-    e.target.textContent = "全部";
-  } else {
-    // 全部表示中 → active ON
+    e.target.textContent="全部";
+  }else{
     e.target.classList.add("active");
-    e.target.textContent = "訪問";
+    e.target.textContent="訪問";
   }
-
   render();
 };
+
 $("csvMainBtn").onclick=e=>{
   e.stopPropagation();
   $("csvMenu").style.display=$("csvMenu").style.display==="block"?"none":"block";
@@ -359,14 +338,11 @@ function render(){
         (r["名称"]||"").toLowerCase().includes(w) ||
         (r["住所"]||"").toLowerCase().includes(w)
       );
-
-    if(!hit) return false;
-
+    if(!hit)return false;
     if(sortVisit){
-      const s = storage(r.ID);
-      return s.visits.length > 0;
+      const s=storage(r.ID);
+      return s.visits.length>0;
     }
-
     return true;
   });
 
@@ -378,49 +354,30 @@ function render(){
   }
 
   $("output").innerHTML="";
-
-  let visitCount = 0;
-  let ticketCount = 0;
+  let visitCount=0,ticketCount=0;
 
   list.forEach(r=>{
     const s=storage(r.ID);
-
-    if (s.visits.length > 0) visitCount++;
-    if (s.ticket) ticketCount++;
-
+    if(s.visits.length>0)visitCount++;
+    if(s.ticket)ticketCount++;
     const d=document.createElement("div");
     d.className="row";
-    d.innerHTML = `
+    d.innerHTML=`
       <div class="name">${r["名称"]}</div>
       <div class="address">${r["住所"]||""}</div>
       <div class="last-visit">
-        ${s.visits.length ? `${s.visits.length}回 ${s.visits[0].date}` : ""}
+        ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
       </div>
-      <div class="ticket">${s.ticket ? "切符入手済" : ""}</div>
+      <div class="ticket">${s.ticket?"切符入手済":""}</div>
     `;
-
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
 
-  // ★ ここで一回だけ更新
-  $("statsBox").innerHTML =
-    `結果：${list.length}<br>` +
-    `訪問：${visitCount}<br>` +
+  $("statsBox").innerHTML=
+    `結果：${list.length}<br>`+
+    `訪問：${visitCount}<br>`+
     `切符：${ticketCount}`;
-}
-
-
-function updateStats(){
-  let v=0,t=0;
-  for(let k in localStorage){
-    if(k.startsWith("michinoeki_")){
-      const s=JSON.parse(localStorage[k]);
-      if(s.visits.length)v++;
-      if(s.ticket)t++;
-    }
-  }
-  $("statsBox").innerHTML=`訪問：${v}<br>切符：${t}`;
 }
 
 const modal=$("detailModal");
@@ -459,107 +416,84 @@ function renderVisits(v){
   v.forEach((e,i)=>{
     const div=document.createElement("div");
     div.className="visit-entry";
-    const formatted = e.date.replace(/\//g, "-");
-    div.innerHTML = `<div>${formatted}</div>`;
+    div.innerHTML=`<div>${e.date}</div>`;
     const b=document.createElement("button");
     b.textContent="🗑";
     b.className="delete-btn";
-    b.onclick=()=>{v.splice(i,1);localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify({ticket:$("ticketCheck").checked,visits:v}));renderVisits(v);render();};
+    b.onclick=()=>{
+      v.splice(i,1);
+      localStorage.setItem(
+        `michinoeki_${currentId}`,
+        JSON.stringify({ticket:$("ticketCheck").checked,visits:v})
+      );
+      renderVisits(v);
+      render();
+    };
     div.appendChild(b);
     $("visitList").appendChild(div);
   });
 }
-// ===== エクスポート =====
-$("exportCSVBtn").onclick = () => {
-  const records = [];
-  let maxVisits = 0;
 
-  // まず最大訪問回数を調べる
-  for (let k in localStorage) {
-    if (k.startsWith("michinoeki_")) {
-      const s = JSON.parse(localStorage[k]);
-      maxVisits = Math.max(maxVisits, s.visits.length);
+// ===== エクスポート =====
+$("exportCSVBtn").onclick=()=>{
+  const records=[];
+  let maxVisits=0;
+  for(let k in localStorage){
+    if(k.startsWith("michinoeki_")){
+      const s=JSON.parse(localStorage[k]);
+      maxVisits=Math.max(maxVisits,s.visits.length);
     }
   }
-
-  // データ作成
-  for (let k in localStorage) {
-    if (!k.startsWith("michinoeki_")) continue;
-
-    const id = k.replace("michinoeki_", "");
-    const s = JSON.parse(localStorage[k]);
-
-    const row = {
-      ID: id,
-      ticket: s.ticket ? 1 : 0
-    };
-
-    s.visits.forEach((v, i) => {
-      row[`visit_${i + 1}`] = v.date;
-    });
-
-    // 足りない列を空で埋める（省略可だがExcel的に親切）
-    for (let i = s.visits.length; i < maxVisits; i++) {
-      row[`visit_${i + 1}`] = "";
-    }
-
+  for(let k in localStorage){
+    if(!k.startsWith("michinoeki_"))continue;
+    const id=k.replace("michinoeki_","");
+    const s=JSON.parse(localStorage[k]);
+    const row={ID:id,ticket:s.ticket?1:0};
+    s.visits.forEach((v,i)=>row[`visit_${i+1}`]=v.date);
+    for(let i=s.visits.length;i<maxVisits;i++)row[`visit_${i+1}`]="";
     records.push(row);
   }
-
-  const csv = Papa.unparse(records);
-
-  const now = new Date();
-  const ts =
-    now.getFullYear().toString() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `michinoeki_data_${ts}.csv`;
+  const csv=Papa.unparse(records);
+  const now=new Date();
+  const ts=
+    now.getFullYear()+
+    String(now.getMonth()+1).padStart(2,"0")+
+    String(now.getDate()).padStart(2,"0")+
+    String(now.getHours()).padStart(2,"0")+
+    String(now.getMinutes()).padStart(2,"0");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`michinoeki_data_${ts}.csv`;
   a.click();
-
   URL.revokeObjectURL(url);
 };
+
 // ===== インポート =====
-$("importCSVBtn").onclick = () => {
-  $("csvFile").click();
-};
-
-$("csvFile").onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: r => {
-      r.data.forEach(row => {
-        const visits = row.visits
-          ? row.visits.split("|").map(d => ({ date: d }))
+$("importCSVBtn").onclick=()=>{$("csvFile").click()};
+$("csvFile").onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  Papa.parse(file,{
+    header:true,
+    skipEmptyLines:true,
+    complete:r=>{
+      r.data.forEach(row=>{
+        const visits=row.visits
+          ? row.visits.split("|").map(d=>({date:d}))
           : [];
-
         localStorage.setItem(
           `michinoeki_${row.ID}`,
-          JSON.stringify({
-            ticket: row.ticket === "1",
-            visits
-          })
+          JSON.stringify({ticket:row.ticket==="1",visits})
         );
       });
       render();
       alert("インポート完了");
     }
   });
-
-  e.target.value = ""; // 同じファイル再選択対策
+  e.target.value="";
 };
-
 </script>
 
 </body>
