@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>道の駅ビューワー（修正版・完全動作版）</title>
 
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<link href="fonts.googleapis.com" rel="stylesheet">
+<script src="cdn.jsdelivr.net"></script>
 
 <style>
 /* ===== 元CSS一切変更なし ===== */
@@ -44,7 +44,7 @@ input[type="text"]{width:100%;box-sizing:border-box;background:#e8f5e9;border:1p
 .last-visit{grid-column:2;grid-row:1;text-align:right;}
 .ticket{grid-column:2;grid-row:2;text-align:right;}
 
-/* ★ 追加：訪問日入力が小さい問題の修正（これのみ） */
+/* ★ 追加：訪問日入力が小さい問題の修正 */
 #visitDate{font-size:16px;padding:6px}
 </style>
 </head>
@@ -97,64 +97,138 @@ input[type="text"]{width:100%;box-sizing:border-box;background:#e8f5e9;border:1p
 <input type="file" id="csvFile" style="display:none">
 
 <script>
-const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv&headers=1";
+const csvUrl="docs.google.com";
 let rows=[],currentId=null,searchWord="",sortVisit=true;
 const $=id=>document.getElementById(id);
 const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false,"ticketDate":null}');
 
 fetch(csvUrl).then(r=>r.text()).then(t=>{
-Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
-rows=r.data.filter(x=>x.ID);render();
-}});
+  Papa.parse(t,{header:true,skipEmptyLines:true,complete:r=>{
+    rows=r.data.filter(x=>x.ID);render();
+  }});
 });
 
+/* ===== 描画処理 ===== */
+function render(){
+  let filtered = rows.filter(r=>{
+    const s = storage(r.ID);
+    const matchSearch = r["名称"].toLowerCase().includes(searchWord) || (r["住所"]||"").toLowerCase().includes(searchWord);
+    const matchVisit = sortVisit ? s.visits.length > 0 : true;
+    return matchSearch && matchVisit;
+  });
+
+  let vCount=0, tCount=0;
+  rows.forEach(r=>{
+    const s = storage(r.ID);
+    if(s.visits.length>0) vCount++;
+    if(s.ticket) tCount++;
+  });
+  $("statsBox").innerHTML = `結果:${filtered.length}<br>訪問:${vCount}<br>切符:${tCount}`;
+
+  $("output").innerHTML = filtered.map(r=>{
+    const s = storage(r.ID);
+    const last = s.visits.length ? s.visits[s.visits.length-1].date.slice(2).replace(/-/g,"/") : "";
+    return `
+    <div class="row">
+      <div class="name" onclick="showModal('${r.ID}')">${r["名称"]}</div>
+      <div class="address">${r["住所"]||""}</div>
+      <div class="last-visit">${last}</div>
+      <div class="ticket">${s.ticket ? "🎫" : ""}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ===== モーダル処理 ===== */
+window.showModal = (id) => {
+  currentId = id;
+  const r = rows.find(x=>x.ID===id);
+  const s = storage(id);
+  $("modalName").textContent = r["名称"];
+  $("ticketDateLabel").textContent = "切符購入日：" + (s.ticketDate || "未取得");
+  $("ticketCheck").checked = s.ticket;
+  $("visitDate").value = new Date().toISOString().split('T')[0];
+  updateVisitList();
+  $("detailModal").style.display = "flex";
+};
+
+function updateVisitList() {
+  const s = storage(currentId);
+  $("visitCountLabel").textContent = ` (${s.visits.length}回)`;
+  $("visitList").innerHTML = s.visits.map((v,i)=>`
+    <div class="visit-entry">
+      <span>${v.date}</span>
+      <button class="delete-btn" onclick="deleteVisit(${i})">削除</button>
+    </div>
+  `).reverse().join("");
+}
+
+$("addVisitBtn").onclick = () => {
+  const date = $("visitDate").value;
+  if(!date) return;
+  const s = storage(currentId);
+  s.visits.push({date});
+  s.visits.sort((a,b)=>a.date.localeCompare(b.date));
+  if($("ticketCheck").checked && !s.ticket){
+    s.ticket = true;
+    s.ticketDate = date;
+  } else if(!$("ticketCheck").checked){
+    s.ticket = false;
+    s.ticketDate = null;
+  }
+  localStorage.setItem(`michinoeki_${currentId}`, JSON.stringify(s));
+  updateVisitList();
+  render();
+};
+
+window.deleteVisit = (index) => {
+  const s = storage(currentId);
+  s.visits.splice(index, 1);
+  if(s.visits.length === 0){ s.ticket = false; s.ticketDate = null; }
+  localStorage.setItem(`michinoeki_${currentId}`, JSON.stringify(s));
+  updateVisitList();
+  render();
+};
+
+$("closeModal2").onclick = () => $("detailModal").style.display = "none";
+
+/* ===== 検索・ソート・CSV ===== */
 $("search").oninput=()=>{searchWord=$("search").value.toLowerCase();$("clearBtn").style.display=searchWord?"block":"none";render()};
 $("clearBtn").onclick=()=>{$("search").value="";searchWord="";render()};
 $("sortVisitDate").onclick=e=>{sortVisit=!sortVisit;e.target.textContent=sortVisit?"全部":"訪問";render()};
 $("csvMainBtn").onclick=e=>{e.stopPropagation();$("csvMenu").style.display=$("csvMenu").style.display==="block"?"none":"block"};
 document.onclick=()=>$("csvMenu").style.display="none";
 
-/* ===== CSVエクスポート ===== */
 $("exportCSVBtn").onclick=()=>{
-const data=[];
-rows.forEach(r=>{
-const s=storage(r.ID);
-const row={
-ID:r.ID,
-名称:r["名称"],
-住所:r["住所"]||"",
-切符購入日:s.ticketDate||""
-};
-s.visits.forEach((v,i)=>row[`訪問日${i+1}`]=v.date);
-data.push(row);
-});
-const csv=Papa.unparse(data);
-const blob=new Blob([csv],{type:"text/csv"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="michinoeki.csv";
-a.click();
+  const data=[];
+  rows.forEach(r=>{
+    const s=storage(r.ID);
+    const row={ID:r.ID,名称:r["名称"],住所:r["住所"]||"",切符購入日:s.ticketDate||""};
+    s.visits.forEach((v,i)=>row[`訪問日${i+1}`]=v.date);
+    data.push(row);
+  });
+  const csv=Papa.unparse(data);
+  const blob=new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="michinoeki.csv";
+  a.click();
 };
 
-/* ===== CSVインポート ===== */
 $("importCSVBtn").onclick=()=>$("csvFile").click();
 $("csvFile").onchange=e=>{
-Papa.parse(e.target.files[0],{
-header:true,
-complete:r=>{
-r.data.forEach(d=>{
-if(!d.ID)return;
-const visits=[];
-Object.keys(d).filter(k=>k.startsWith("訪問日")&&d[k])
-.forEach(k=>visits.push({date:d[k]}));
-localStorage.setItem(
-`michinoeki_${d.ID}`,
-JSON.stringify({visits,ticket:!!d["切符購入日"],ticketDate:d["切符購入日"]||null})
-);
-});
-render();
-}
-});
+  Papa.parse(e.target.files[0],{
+    header:true,
+    complete:r=>{
+      r.data.forEach(d=>{
+        if(!d.ID)return;
+        const visits=[];
+        Object.keys(d).filter(k=>k.startsWith("訪問日")&&d[k]).forEach(k=>visits.push({date:d[k]}));
+        localStorage.setItem(`michinoeki_${d.ID}`,JSON.stringify({visits,ticket:!!d["切符購入日"],ticketDate:d["切符購入日"]||null}));
+      });
+      render();
+    }
+  });
+};
 </script>
 </body>
 </html>
