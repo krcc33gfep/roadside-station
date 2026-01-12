@@ -365,14 +365,17 @@ function render(){
     if(s.ticket)ticketCount++;
     const d=document.createElement("div");
     d.className="row";
-    d.innerHTML=`
-      <div class="name">${r["名称"]}</div>
-      <div class="address">${r["住所"]||""}</div>
-      <div class="last-visit">
-        ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
-      </div>
-      <div class="ticket">${s.ticket?"切符入手済":""}</div>
-    `;
+d.innerHTML=`
+  <div class="name">${r["名称"]}</div>
+  <div class="address">${r["住所"]||""}</div>
+  <div class="last-visit">
+    ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
+  </div>
+  <div class="ticket">
+    ${s.ticket !== undefined ? `切符入手：${s.ticket ? 1 : 0}` : ""}
+  </div>
+`;
+
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
