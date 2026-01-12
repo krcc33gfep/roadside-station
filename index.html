@@ -493,13 +493,16 @@ $("csvFile").onchange = e => {
     complete: r => {
       r.data.forEach(row => {
 
-        // ticket が空の行は何もしない（超重要）
-        if (!row.ticket) return;
+        // ID が無い行は無視
+        if (!row.ID) return;
 
         const key = `michinoeki_${row.ID}`;
-        const prev = JSON.parse(
-          localStorage.getItem(key) || '{"visits":[],"ticket":false}'
-        );
+
+        // 既存データがあるものだけ更新する
+        const prevRaw = localStorage.getItem(key);
+        if (!prevRaw) return;
+
+        const prev = JSON.parse(prevRaw);
 
         let ticketValue = prev.ticket;
 
@@ -516,7 +519,6 @@ $("csvFile").onchange = e => {
             visits: prev.visits
           })
         );
-
       });
 
       render();
@@ -526,7 +528,6 @@ $("csvFile").onchange = e => {
 
   e.target.value = "";
 };
-
 </script>
 
 </body>
