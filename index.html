@@ -493,10 +493,24 @@ $("csvFile").onchange=e=>{
         const visits=row.visits
           ? row.visits.split("|").map(d=>({date:d}))
           : [];
-        localStorage.setItem(
-          `michinoeki_${row.ID}`,
-          JSON.stringify({ticket:row.ticket==="1",visits})
-        );
+let ticketValue = false;
+
+if (row.ticket) {
+  if (row.ticket === "1") {
+    ticketValue = true;
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
+    ticketValue = row.ticket;
+  }
+}
+
+localStorage.setItem(
+  `michinoeki_${row.ID}`,
+  JSON.stringify({
+    ticket: ticketValue,
+    visits
+  })
+);
+
       });
       render();
       alert("インポート完了");
