@@ -263,7 +263,10 @@ input[type="text"]{
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
-    <div>切符購入：<input type="checkbox" id="ticketCheck"></div>
+<div id="ticketStatus">切符入手：0</div>
+<div style="display:none">
+  <input type="checkbox" id="ticketCheck">
+</div>
     <div>訪問履歴<span id="visitCountLabel"></span></div>
     <div id="visitList"></div>
     <label>訪問日：<input type="date" id="visitDate"></label>
@@ -389,16 +392,20 @@ function openModal(r){
   $("modalName").textContent=r["名称"];
   $("visitDate").value=new Date().toISOString().split("T")[0];
   const s=storage(currentId);
-  $("ticketCheck").checked=s.ticket;
-  renderVisits(s.visits);
+$("ticketCheck").checked = s.ticket;
+$("ticketStatus").textContent = `切符入手：${s.ticket ? 1 : 0}`;
+renderVisits(s.visits);
+
 }
 
 $("ticketCheck").onchange=e=>{
   const s=storage(currentId);
-  s.ticket=e.target.checked;
+  s.ticket = e.target.checked;
   localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(s));
+  $("ticketStatus").textContent = `切符入手：${s.ticket ? 1 : 0}`;
   render();
 };
+
 
 $("addVisitBtn").onclick=()=>{
   const d=$("visitDate").value;
