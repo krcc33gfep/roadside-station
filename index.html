@@ -365,17 +365,14 @@ function render(){
     if(s.ticket)ticketCount++;
     const d=document.createElement("div");
     d.className="row";
-d.innerHTML=`
-  <div class="name">${r["名称"]}</div>
-  <div class="address">${r["住所"]||""}</div>
-  <div class="last-visit">
-    ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
-  </div>
-  <div class="ticket">
-    ${s.ticket !== undefined ? `切符入手：${s.ticket ? 1 : 0}` : ""}
-  </div>
-`;
-
+    d.innerHTML=`
+      <div class="name">${r["名称"]}</div>
+      <div class="address">${r["住所"]||""}</div>
+      <div class="last-visit">
+        ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
+      </div>
+      <div class="ticket">${s.ticket?"切符入手済":""}</div>
+    `;
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
   });
@@ -481,52 +478,28 @@ $("exportCSVBtn").onclick=()=>{
 };
 
 // ===== インポート =====
-$("importCSVBtn").onclick = () => { $("csvFile").click() };
-
-$("csvFile").onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: r => {
-      r.data.forEach(row => {
-
-        // ID が無い行は無視
-        if (!row.ID) return;
-
-        const key = `michinoeki_${row.ID}`;
-
-        // 既存データがあるものだけ更新する
-        const prevRaw = localStorage.getItem(key);
-        if (!prevRaw) return;
-
-        const prev = JSON.parse(prevRaw);
-
-        let ticketValue = prev.ticket;
-
-        if (row.ticket === "1") {
-          ticketValue = true;
-        } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
-          ticketValue = row.ticket;
-        }
-
+$("importCSVBtn").onclick=()=>{$("csvFile").click()};
+$("csvFile").onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  Papa.parse(file,{
+    header:true,
+    skipEmptyLines:true,
+    complete:r=>{
+      r.data.forEach(row=>{
+        const visits=row.visits
+          ? row.visits.split("|").map(d=>({date:d}))
+          : [];
         localStorage.setItem(
-          key,
-          JSON.stringify({
-            ticket: ticketValue,
-            visits: prev.visits
-          })
+          `michinoeki_${row.ID}`,
+          JSON.stringify({ticket:row.ticket==="1",visits})
         );
       });
-
       render();
       alert("インポート完了");
     }
   });
-
-  e.target.value = "";
+  e.target.value="";
 };
 </script>
 
