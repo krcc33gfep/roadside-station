@@ -481,7 +481,6 @@ $("exportCSVBtn").onclick=()=>{
 };
 
 // ===== インポート =====
-// ===== インポート =====
 $("importCSVBtn").onclick = () => { $("csvFile").click() };
 
 $("csvFile").onchange = e => {
@@ -494,33 +493,27 @@ $("csvFile").onchange = e => {
     complete: r => {
       r.data.forEach(row => {
 
-        // 既存データを必ず取得（訪問履歴保護）
+        // ticket が空の行は何もしない（超重要）
+        if (!row.ticket) return;
+
         const key = `michinoeki_${row.ID}`;
         const prev = JSON.parse(
           localStorage.getItem(key) || '{"visits":[],"ticket":false}'
         );
 
-        // visits：CSVに無い前提なので既存を維持
-        const visits = prev.visits;
-
-        // ticket：0 / 1 / 日付 対応
         let ticketValue = prev.ticket;
 
-        if (row.ticket) {
-          if (row.ticket === "1") {
-            ticketValue = true;
-          } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
-            ticketValue = row.ticket;
-          } else {
-            ticketValue = false;
-          }
+        if (row.ticket === "1") {
+          ticketValue = true;
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
+          ticketValue = row.ticket;
         }
 
         localStorage.setItem(
           key,
           JSON.stringify({
             ticket: ticketValue,
-            visits: visits
+            visits: prev.visits
           })
         );
 
