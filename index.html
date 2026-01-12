@@ -481,43 +481,59 @@ $("exportCSVBtn").onclick=()=>{
 };
 
 // ===== インポート =====
-$("importCSVBtn").onclick=()=>{$("csvFile").click()};
-$("csvFile").onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  Papa.parse(file,{
-    header:true,
-    skipEmptyLines:true,
-    complete:r=>{
-      r.data.forEach(row=>{
-        const visits=row.visits
-          ? row.visits.split("|").map(d=>({date:d}))
-          : [];
-let ticketValue = false;
+// ===== インポート =====
+$("importCSVBtn").onclick = () => { $("csvFile").click() };
 
-if (row.ticket) {
-  if (row.ticket === "1") {
-    ticketValue = true;
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
-    ticketValue = row.ticket;
-  }
-}
+$("csvFile").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-localStorage.setItem(
-  `michinoeki_${row.ID}`,
-  JSON.stringify({
-    ticket: ticketValue,
-    visits
-  })
-);
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: r => {
+      r.data.forEach(row => {
+
+        // 既存データを必ず取得（訪問履歴保護）
+        const key = `michinoeki_${row.ID}`;
+        const prev = JSON.parse(
+          localStorage.getItem(key) || '{"visits":[],"ticket":false}'
+        );
+
+        // visits：CSVに無い前提なので既存を維持
+        const visits = prev.visits;
+
+        // ticket：0 / 1 / 日付 対応
+        let ticketValue = prev.ticket;
+
+        if (row.ticket) {
+          if (row.ticket === "1") {
+            ticketValue = true;
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
+            ticketValue = row.ticket;
+          } else {
+            ticketValue = false;
+          }
+        }
+
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            ticket: ticketValue,
+            visits: visits
+          })
+        );
 
       });
+
       render();
       alert("インポート完了");
     }
   });
-  e.target.value="";
+
+  e.target.value = "";
 };
+
 </script>
 
 </body>
