@@ -483,9 +483,22 @@ $("csvFile").onchange = e => {
         visits.sort((a, b) => new Date(b.date) - new Date(a.date));
 
 // --- ticket ---
+// --- ticket ---
 let ticketValue = false;
-
 const rawTicket = (row.ticket || "").toString().trim();
+
+// YYYY/MM/DD → YYYY-MM-DD に正規化
+const normalizedTicket = rawTicket.replace(/\//g, "-");
+
+if (normalizedTicket === "1") {
+  ticketValue = true; // 旧仕様互換
+} else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(normalizedTicket)) {
+  // 2026-1-13 → 2026-01-13 に整形
+  const d = new Date(normalizedTicket);
+  if (!isNaN(d)) {
+    ticketValue = d.toISOString().split("T")[0];
+  }
+}
 
 if (rawTicket === "1") {
   ticketValue = true;                 // 旧仕様
