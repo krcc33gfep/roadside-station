@@ -249,6 +249,8 @@ input[type="text"]{
         </div>
       </div>
     </div>
+    <button onclick="clearMichiData()">初期化</button>
+
 
     <div class="header-right" id="statsBox">
       結果：0<br>
@@ -513,6 +515,15 @@ localStorage.setItem(
 
   e.target.value = "";
 };
+
+  // ★ 一時的：localStorage 全消去
+  window.clearMichiData = () => {
+    if (confirm("訪問・切符データをすべて削除します。よろしいですか？")) {
+      localStorage.clear();
+      alert("削除しました。ページを再読み込みします。");
+      location.reload();
+    }
+  };
 </script>
 
 </body>
