@@ -371,7 +371,13 @@ function render(){
       <div class="last-visit">
         ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
       </div>
-      <div class="ticket">${s.ticket?"切符入手済":""}</div>
+      <div class="ticket">
+  ${
+    s.ticket === false ? "" :
+    s.ticket === true  ? "切符入手済" :
+    `切符購入日：${s.ticket}`
+  }
+</div>
     `;
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
@@ -393,7 +399,14 @@ function openModal(r){
   $("visitDate").value=new Date().toISOString().split("T")[0];
   const s=storage(currentId);
 $("ticketCheck").checked = s.ticket;
-$("ticketStatus").textContent = `切符入手：${s.ticket ? 1 : 0}`;
+if (s.ticket === false) {
+  $("ticketStatus").textContent = "切符未入手";
+} else if (s.ticket === true) {
+  $("ticketStatus").textContent = "切符入手済";
+} else {
+  $("ticketStatus").textContent = `切符購入日：${s.ticket}`;
+}
+
 renderVisits(s.visits);
 
 }
