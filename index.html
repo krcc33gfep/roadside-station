@@ -441,65 +441,58 @@ function renderVisits(v){
   });
 }
 
-// ===== エクスポート =====
-$("exportCSVBtn").onclick=()=>{
-  const records=[];
-  let maxVisits=0;
-  for(let k in localStorage){
-    if(k.startsWith("michinoeki_")){
-      const s=JSON.parse(localStorage[k]);
-      maxVisits=Math.max(maxVisits,s.visits.length);
-    }
-  }
-  for(let k in localStorage){
-    if(!k.startsWith("michinoeki_"))continue;
-    const id=k.replace("michinoeki_","");
-    const s=JSON.parse(localStorage[k]);
-    const row={ID:id,ticket:s.ticket?1:0};
-    s.visits.forEach((v,i)=>row[`visit_${i+1}`]=v.date);
-    for(let i=s.visits.length;i<maxVisits;i++)row[`visit_${i+1}`]="";
-    records.push(row);
-  }
-  const csv=Papa.unparse(records);
-  const now=new Date();
-  const ts=
-    now.getFullYear()+
-    String(now.getMonth()+1).padStart(2,"0")+
-    String(now.getDate()).padStart(2,"0")+
-    String(now.getHours()).padStart(2,"0")+
-    String(now.getMinutes()).padStart(2,"0");
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`michinoeki_data_${ts}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
 // ===== インポート =====
-$("importCSVBtn").onclick=()=>{$("csvFile").click()};
-$("csvFile").onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  Papa.parse(file,{
-    header:true,
-    skipEmptyLines:true,
-    complete:r=>{
-      r.data.forEach(row=>{
-        const visits=row.visits
-          ? row.visits.split("|").map(d=>({date:d}))
-          : [];
+$("importCSVBtn").onclick = () => { $("csvFile").click() };
+
+$("csvFile").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: r => {
+      r.data.forEach(row => {
+
+        if (!row.ID) return;
+
+        const key = `michinoeki_${row.ID}`;
+
+        // --- visits を CSV から復元 ---
+        const visits = [];
+        Object.keys(row).forEach(k => {
+          if (k.startsWith("visit_") && row[k]) {
+            visits.push({ date: row[k] });
+          }
+        });
+
+        // 日付降順（visit_1 が最新でなくても安全）
+        visits.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // --- ticket ---
+        let ticketValue = false;
+        if (row.ticket === "1") {
+          ticketValue = true;
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(row.ticket)) {
+          ticketValue = row.ticket;
+        }
+
         localStorage.setItem(
-          `michinoeki_${row.ID}`,
-          JSON.stringify({ticket:row.ticket==="1",visits})
+          key,
+          JSON.stringify({
+            ticket: ticketValue,
+            visits: visits
+          })
         );
+
       });
+
       render();
       alert("インポート完了");
     }
   });
-  e.target.value="";
+
+  e.target.value = "";
 };
 </script>
 
