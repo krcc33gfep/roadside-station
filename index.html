@@ -277,7 +277,7 @@ input[type="text"]{
 <input type="file" id="csvFile" style="display:none">
 
 <script>
-const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv&headers=1";
+const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkePLFps-Ti8UpUfjnHeg/gviz/tq?tqx=out:csv";
 let rows=[],currentId=null,searchWord="",sortVisit=true;
 
 const $=id=>document.getElementById(id);
@@ -475,37 +475,26 @@ $("importCSVBtn").onclick=()=>{$("csvFile").click()};
 $("csvFile").onchange=e=>{
   const file=e.target.files[0];
   if(!file)return;
-
   Papa.parse(file,{
     header:true,
     skipEmptyLines:true,
     complete:r=>{
       r.data.forEach(row=>{
-        if(!row.ID)return;
-
-        const visits=[];
-        Object.keys(row).forEach(k=>{
-          if(k.startsWith("visit_") && row[k]){
-            visits.push({date:row[k]});
-          }
-        });
-
+        const visits=row.visits
+          ? row.visits.split("|").map(d=>({date:d}))
+          : [];
         localStorage.setItem(
           `michinoeki_${row.ID}`,
-          JSON.stringify({
-            ticket: row.ticket === "1",
-            visits
-          })
+          JSON.stringify({ticket:row.ticket==="1",visits})
         );
       });
-
       render();
       alert("インポート完了");
     }
   });
-
   e.target.value="";
-};</script>
+};
+</script>
 
 </body>
 </html>
