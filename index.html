@@ -240,7 +240,6 @@ input[type="text"]{
 
       <div class="sort-buttons">
         <button id="sortVisitDate">全部</button>
-    <button onclick="clearMichiData()">初期化</button>
         <div style="position:relative">
           <button id="csvMainBtn">保存</button>
           <div class="csv-menu" id="csvMenu">
@@ -516,15 +515,6 @@ $("csvFile").onchange = e => {
 };
   e.target.value = "";
 };
-
-  // ★ 一時的：localStorage 全消去
-  window.clearMichiData = () => {
-    if (confirm("訪問・切符データをすべて削除します。よろしいですか？")) {
-      localStorage.clear();
-      alert("削除しました。ページを再読み込みします。");
-      location.reload();
-    }
-  };
 </script>
 
 </body>
