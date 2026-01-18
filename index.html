@@ -458,7 +458,6 @@ function renderVisits(v){
 
 // ===== インポート =====
 $("importCSVBtn").onclick = () => { $("csvFile").click() };
-
 $("csvFile").onchange = e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -466,9 +465,10 @@ $("csvFile").onchange = e => {
   Papa.parse(file, {
     header: true,
     skipEmptyLines: true,
+    // ヘッダーの余計な空白やBOMを削除
+    transformHeader: h => h.trim().replace(/^\ufeff/, ""),
     complete: r => {
       r.data.forEach(row => {
-
         if (!row.ID) return;
 
         const key = `michinoeki_${row.ID}`;
@@ -476,43 +476,44 @@ $("csvFile").onchange = e => {
         // --- visits を CSV から復元 ---
         const visits = [];
         Object.keys(row).forEach(k => {
-          if (k.startsWith("visit_") && row[k]) {
-            visits.push({ date: row[k] });
+          const val = (row[k] || "").toString().trim();
+          if (k.trim().startsWith("visit_") && val) {
+            visits.push({ date: val });
           }
         });
 
-        // 日付降順（visit_1 が最新でなくても安全）
+        // 日付降順
         visits.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-// --- ticket（CSVを絶対値として扱う） ---
-let ticketValue = false;
+        // --- ticket 判定 ---
+        let ticketValue = false;
+        const rawTicket = (row.ticket || "").toString().trim();
+        if (rawTicket) {
+          const normalized = rawTicket.replace(/\//g, "-");
+          // YYYY-MM-DD かつ妥当な日付かチェック
+          if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(normalized)) {
+            const d = new Date(normalized);
+            if (!isNaN(d.getTime())) {
+              ticketValue = normalized; 
+            }
+          } else if (rawTicket === "true" || rawTicket === "入手済") {
+            ticketValue = true;
+          }
+        }
 
-const rawTicket = (row.ticket || "").toString().trim();
-const normalized = rawTicket.replace(/\//g, "-");
-
-if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(normalized)) {
-  const d = new Date(normalized);
-  if (!isNaN(d)) {
-    ticketValue = d.toISOString().split("T")[0];
-  }
-}
-
-// ★ ここで必ず上書きする
-localStorage.setItem(
-  key,
-  JSON.stringify({
-    ticket: ticketValue,   // 空白なら必ず false
-    visits: visits
-  })
-);
-
+        // ★重要：ここが抜けていると保存されません
+        const saveData = {
+          visits: visits,
+          ticket: ticketValue
+        };
+        localStorage.setItem(key, JSON.stringify(saveData));
       });
 
-      render();
-      alert("インポート完了");
+      alert("インポートが完了しました");
+      location.reload(); // 画面を更新して反映
     }
   });
-
+};
   e.target.value = "";
 };
 
