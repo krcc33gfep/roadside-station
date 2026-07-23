@@ -224,6 +224,25 @@ input[type="text"]{
 #modalName{color:#2e7d32}
 #addVisitBtn{background:#4caf50}
 #closeModal2{background:#d32f2f}
+  .ticket-save-btn{
+  background:#81c784;
+  border:none;
+  border-radius:6px;
+  padding:3px 12px;
+  font-size:16px;
+  cursor:pointer;
+}
+#ticketDate{
+  background:#e8f5e9;
+  border:1px solid #81c784;
+  border-radius:6px;
+  padding:2px;
+  font-size:18px;
+  width:160px;
+}
+#ticketDateBox{
+  margin-top:6px;
+}
 </style>
 </head>
 
@@ -264,7 +283,16 @@ input[type="text"]{
 <div class="modal" id="detailModal">
   <div class="modal-content">
     <h2 id="modalName"></h2>
-    <div>切符購入：<input type="checkbox" id="ticketCheck"></div>
+<div>
+  切符購入：
+  <input type="checkbox" id="ticketCheck">
+  <button id="ticketSaveBtn" class="ticket-save-btn" style="display:none;">保存</button>
+</div>
+
+<div id="ticketDateBox" style="display:none;">
+  購入日：
+  <input type="date" id="ticketDate">
+</div>
     <div>訪問履歴<span id="visitCountLabel"></span></div>
     <div id="visitList"></div>
     <label>訪問日：<input type="date" id="visitDate"></label>
@@ -398,17 +426,54 @@ function openModal(r){
   $("modalName").textContent=r["名称"];
   $("visitDate").value=new Date().toISOString().split("T")[0];
   const s=storage(currentId);
-  $("ticketCheck").checked=s.ticket;
-  renderVisits(s.visits);
+$("ticketCheck").checked=!!s.ticket;
+
+if(s.ticket && typeof s.ticket === "string"){
+  $("ticketDate").value=s.ticket;
+  $("ticketDateBox").style.display="block";
+  $("ticketSaveBtn").style.display="inline-block";
+}else{
+  $("ticketDateBox").style.display="none";
+  $("ticketSaveBtn").style.display="none";
+}
+
+renderVisits(s.visits);
 }
 
 $("ticketCheck").onchange=e=>{
+  if(e.target.checked){
+    $("ticketDate").value=new Date().toISOString().split("T")[0];
+    $("ticketDateBox").style.display="block";
+    $("ticketSaveBtn").style.display="inline-block";
+  }else{
+    const s=storage(currentId);
+    s.ticket="";
+    localStorage.setItem(
+      `michinoeki_${currentId}`,
+      JSON.stringify(s)
+    );
+    
+  $("ticketSaveBtn").onclick=()=>{
+  const d=$("ticketDate").value;
+  if(!d)return alert("購入日を入力してください");
+
   const s=storage(currentId);
-  s.ticket=e.target.checked;
-  localStorage.setItem(`michinoeki_${currentId}`,JSON.stringify(s));
+  s.ticket=d;
+
+  localStorage.setItem(
+    `michinoeki_${currentId}`,
+    JSON.stringify(s)
+  );
+
   render();
 };
 
+    $("ticketDateBox").style.display="none";
+    $("ticketSaveBtn").style.display="none";
+    render();
+  }
+};
+  
 $("addVisitBtn").onclick=()=>{
   const d=$("visitDate").value;
   if(!d)return alert("訪問日を入力してください");
