@@ -528,7 +528,10 @@ $("exportCSVBtn").onclick=()=>{
     if(!k.startsWith("michinoeki_"))continue;
     const id=k.replace("michinoeki_","");
     const s=JSON.parse(localStorage[k]);
-    const row={ID:id,ticket:s.ticket?1:0};
+    const row={
+  ID:id,
+  ticket:s.ticket||""
+};
     s.visits.forEach((v,i)=>row[`visit_${i+1}`]=v.date);
     for(let i=s.visits.length;i<maxVisits;i++)row[`visit_${i+1}`]="";
     records.push(row);
@@ -570,13 +573,22 @@ $("csvFile").onchange=e=>{
           }
         });
 
-        localStorage.setItem(
-          `michinoeki_${row.ID}`,
-          JSON.stringify({
-            ticket: row.ticket === "1",
-            visits
-          })
-        );
+let ticket="";
+
+if(row.ticket==="1"){
+  ticket="不明";
+}else if(row.ticket){
+  ticket=row.ticket;
+}
+
+localStorage.setItem(
+  `michinoeki_${row.ID}`,
+  JSON.stringify({
+    ticket,
+    visits
+  })
+);
+        
       });
 
       render();
