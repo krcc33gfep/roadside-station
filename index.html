@@ -445,18 +445,24 @@ $("ticketCheck").onchange=e=>{
     $("ticketDate").value=new Date().toISOString().split("T")[0];
     $("ticketDateBox").style.display="block";
     $("ticketSaveBtn").style.display="inline-block";
-  }else{
-    const s=storage(currentId);
-    s.ticket="";
-    localStorage.setItem(
-      `michinoeki_${currentId}`,
-      JSON.stringify(s)
-    );
-    
-    $("ticketDateBox").style.display="none";
-    $("ticketSaveBtn").style.display="none";
-    render();
+}else{
+  if(!confirm("切符購入記録を削除しますか？")){
+    e.target.checked=true;
+    return;
   }
+
+  const s=storage(currentId);
+  s.ticket="";
+  localStorage.setItem(
+    `michinoeki_${currentId}`,
+    JSON.stringify(s)
+  );
+
+  $("ticketDateBox").style.display="none";
+  $("ticketSaveBtn").style.display="none";
+  render();
+}
+
 };
 
 $("ticketSaveBtn").onclick=()=>{
