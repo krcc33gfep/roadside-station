@@ -405,7 +405,7 @@ function render(){
       <div class="last-visit">
         ${s.visits.length?`${s.visits.length}回 ${s.visits[0].date}`:""}
       </div>
-      <div class="ticket">${s.ticket ? 1 : 0}</div>
+      <div class="ticket">${s.ticket ? "切符購入済" : ""}</div>
     `;
     d.querySelector(".name").onclick=()=>openModal(r);
     $("output").appendChild(d);
