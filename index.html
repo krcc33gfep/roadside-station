@@ -444,7 +444,7 @@ $("ticketCheck").onchange=e=>{
   if(e.target.checked){
     $("ticketDate").value=new Date().toISOString().split("T")[0];
     $("ticketDateBox").style.display="block";
-    $("ticketSaveBtn").style.display="inline-block";
+    $("ticketSaveBtn").style.display="none";
   }else{
     const s=storage(currentId);
     s.ticket="";
