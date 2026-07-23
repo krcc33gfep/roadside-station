@@ -282,8 +282,16 @@ const csvUrl="https://docs.google.com/spreadsheets/d/1VOKUKRTHUnmj5ILDyqJbdbqkeP
 let rows=[],currentId=null,searchWord="",sortVisit=true;
 
 const $=id=>document.getElementById(id);
-const storage=id=>JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
+const storage=id=>{
+  const data=JSON.parse(localStorage.getItem(`michinoeki_${id}`)||'{"visits":[],"ticket":false}');
 
+  // 旧形式 true/false 互換
+  if(typeof data.ticket === "boolean"){
+    data.ticket = data.ticket ? "unknown" : "";
+  }
+
+  return data;
+};
 fetch(csvUrl).then(r=>r.text()).then(t=>{
   Papa.parse(t,{
     header:true,
