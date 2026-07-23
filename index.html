@@ -453,7 +453,13 @@ $("ticketCheck").onchange=e=>{
       JSON.stringify(s)
     );
     
-  $("ticketSaveBtn").onclick=()=>{
+    $("ticketDateBox").style.display="none";
+    $("ticketSaveBtn").style.display="none";
+    render();
+  }
+};
+
+$("ticketSaveBtn").onclick=()=>{
   const d=$("ticketDate").value;
   if(!d)return alert("購入日を入力してください");
 
@@ -466,12 +472,6 @@ $("ticketCheck").onchange=e=>{
   );
 
   render();
-};
-
-    $("ticketDateBox").style.display="none";
-    $("ticketSaveBtn").style.display="none";
-    render();
-  }
 };
   
 $("addVisitBtn").onclick=()=>{
